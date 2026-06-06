@@ -10,66 +10,115 @@ const CartDrawer = () => {
       {/* Overlay */}
       <div
         onClick={closeDrawer}
-        className={`fixed inset-0 bg-black/60 z-[60] transition-opacity duration-400
-          ${isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
+        style={{
+          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)',
+          zIndex: 60, opacity: isOpen ? 1 : 0,
+          pointerEvents: isOpen ? 'auto' : 'none',
+          transition: 'opacity 0.35s ease',
+        }}
       />
 
       {/* Drawer */}
-      <div className={`fixed top-0 right-0 bottom-0 w-[420px] max-sm:w-full bg-deep border-l border-[#c9a84c]/10 z-[61]
-        flex flex-col transition-transform duration-400 ease-in-out
-        ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}
+      <div
+        style={{
+          position: 'fixed', top: 0, right: 0, bottom: 0,
+          width: '420px', maxWidth: '100vw',
+          background: '#faf7f2', borderLeft: '1px solid rgba(201,168,76,0.15)',
+          zIndex: 61, display: 'flex', flexDirection: 'column',
+          transform: isOpen ? 'translateX(0)' : 'translateX(100%)',
+          transition: 'transform 0.35s cubic-bezier(0.4,0,0.2,1)',
+        }}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-7 border-b border-[#c9a84c]/10">
-          <h3 className="font-serif text-2xl font-light text-cream">
-            Your Cart {totalItems > 0 && <span className="text-gold text-lg">({totalItems})</span>}
+        <div style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          padding: '2rem 1.5rem', borderBottom: '1px solid rgba(201,168,76,0.15)',
+        }}>
+          <h3 style={{
+            fontFamily: "'Cormorant Garamond',serif", fontSize: '1.5rem',
+            fontWeight: 300, color: '#1a1510',
+          }}>
+            Your Cart {totalItems > 0 && <span style={{ color: '#c9a84c', fontSize: '1rem' }}>({totalItems})</span>}
           </h3>
-          <button onClick={closeDrawer} className="text-cream-dim hover:text-gold transition-colors">
+          <button onClick={closeDrawer} style={{
+            background: 'none', border: 'none', color: '#8a6f30',
+            cursor: 'pointer', transition: 'color 0.3s',
+          }}
+          onMouseEnter={e => e.target.style.color = '#c9a84c'}
+          onMouseLeave={e => e.target.style.color = '#8a6f30'}
+          >
             <X size={20} />
           </button>
         </div>
 
         {/* Items */}
-        <div className="flex-1 overflow-y-auto px-6 py-5 flex flex-col gap-4 scrollbar-thin">
+        <div style={{
+          flex: 1, overflowY: 'auto', padding: '1.5rem',
+          display: 'flex', flexDirection: 'column', gap: '1rem',
+        }}>
           {items.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full text-center gap-6">
-              <p className="text-[0.8rem] text-cream-dim tracking-widest">Your cart is empty.</p>
-              <button
-                onClick={closeDrawer}
-                className="border border-[#c9a84c]/20 text-cream-dim text-[0.65rem] tracking-[0.2em] uppercase px-6 py-3 transition-all hover:border-gold hover:text-gold"
-              >
-                Continue Shopping
-              </button>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', textAlign: 'center', gap: '1rem' }}>
+              <p style={{ fontSize: '0.8rem', color: '#8a6f30', letterSpacing: '0.1em' }}>Your cart is empty.</p>
+              <button onClick={closeDrawer} style={{
+                background: 'none', border: '1px solid rgba(201,168,76,0.25)',
+                color: '#4a3f35', fontFamily: "'Josefin Sans',sans-serif",
+                fontSize: '0.65rem', letterSpacing: '0.2em',
+                textTransform: 'uppercase', padding: '0.7rem 1.5rem',
+                cursor: 'pointer', transition: 'all 0.3s',
+              }}
+              onMouseEnter={e => {
+                e.currentTarget.style.background = '#c9a84c'
+                e.currentTarget.style.borderColor = '#c9a84c'
+                e.currentTarget.style.color = '#080606'
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.background = 'none'
+                e.currentTarget.style.borderColor = 'rgba(201,168,76,0.25)'
+                e.currentTarget.style.color = '#4a3f35'
+              }}
+              >Continue Shopping</button>
             </div>
           ) : (
             items.map((item) => (
-              <div key={`${item.id}-${item.color}`} className="flex gap-3 bg-surface border border-[#c9a84c]/10 p-3 relative">
-                {/* Color swatch as image placeholder */}
-                <div
-                  className="w-[70px] h-[70px] flex-shrink-0 opacity-80 rounded-sm"
-                  style={{ background: item.colors?.find(c => c.name === item.color)?.hex || '#3a1f0a' }}
-                />
-                <div className="flex-1 flex flex-col gap-1 min-w-0">
-                  <p className="font-serif text-[1rem] text-cream leading-tight">{item.name}</p>
-                  <p className="text-[0.6rem] tracking-[0.15em] text-gold uppercase">{item.color}</p>
-                  <div className="flex items-center justify-between mt-auto">
-                    <div className="flex items-center gap-2 border border-[#c9a84c]/20 px-2 py-1">
-                      <button onClick={() => updateQuantity(item.id, item.color, item.quantity - 1)} className="text-cream-dim hover:text-gold transition-colors">
-                        <Minus size={11} />
+              <div key={`${item.id}-${item.color}`} style={{
+                display: 'flex', gap: '1rem', background: '#f0ebe0',
+                border: '1px solid rgba(201,168,76,0.15)', padding: '1rem',
+                position: 'relative',
+              }}>
+                <div style={{
+                  width: '70px', height: '70px', flexShrink: 0,
+                  background: item.colors?.find(c => c.name === item.color)?.hex || '#3a1f0a',
+                  borderRadius: '2px', opacity: 0.8,
+                }}/>
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                  <p style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: '1rem', color: '#1a1510' }}>{item.name}</p>
+                  <p style={{ fontSize: '0.6rem', letterSpacing: '0.15em', color: '#c9a84c', textTransform: 'uppercase' }}>{item.color}</p>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 'auto' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', border: '1px solid rgba(201,168,76,0.2)', padding: '0.25rem 0.5rem' }}>
+                      <button onClick={() => updateQuantity(item.id, item.color, item.quantity - 1)} style={{
+                        background: 'none', border: 'none', color: '#8a6f30', cursor: 'pointer', display: 'flex',
+                      }}>
+                        <Minus size={12} />
                       </button>
-                      <span className="text-[0.75rem] text-cream w-4 text-center">{item.quantity}</span>
-                      <button onClick={() => updateQuantity(item.id, item.color, item.quantity + 1)} className="text-cream-dim hover:text-gold transition-colors">
-                        <Plus size={11} />
+                      <span style={{ fontSize: '0.75rem', color: '#1a1510', minWidth: '16px', textAlign: 'center' }}>{item.quantity}</span>
+                      <button onClick={() => updateQuantity(item.id, item.color, item.quantity + 1)} style={{
+                        background: 'none', border: 'none', color: '#8a6f30', cursor: 'pointer', display: 'flex',
+                      }}>
+                        <Plus size={12} />
                       </button>
                     </div>
-                    <p className="text-[0.75rem] text-cream">PKR {(item.price * item.quantity).toLocaleString()}</p>
+                    <p style={{ fontSize: '0.75rem', color: '#1a1510' }}>PKR {(item.price * item.quantity).toLocaleString()}</p>
                   </div>
                 </div>
-                <button
-                  onClick={() => removeItem(item.id, item.color)}
-                  className="absolute top-2 right-2 text-cream-dim hover:text-red-400 transition-colors"
+                <button onClick={() => removeItem(item.id, item.color)} style={{
+                  position: 'absolute', top: '0.5rem', right: '0.5rem',
+                  background: 'none', border: 'none', color: '#8a6f30',
+                  cursor: 'pointer', display: 'flex', transition: 'color 0.3s',
+                }}
+                onMouseEnter={e => e.target.style.color = '#c0392b'}
+                onMouseLeave={e => e.target.style.color = '#8a6f30'}
                 >
-                  <Trash2 size={13} />
+                  <Trash2 size={14} />
                 </button>
               </div>
             ))
@@ -78,15 +127,32 @@ const CartDrawer = () => {
 
         {/* Footer */}
         {items.length > 0 && (
-          <div className="px-6 py-5 border-t border-[#c9a84c]/10 flex flex-col gap-4">
-            <div className="flex justify-between items-center">
-              <span className="text-[0.65rem] tracking-[0.2em] uppercase text-cream-dim">Total</span>
-              <span className="font-serif text-xl text-cream">PKR {totalPrice.toLocaleString()}</span>
+          <div style={{
+            padding: '1.5rem', borderTop: '1px solid rgba(201,168,76,0.15)',
+            display: 'flex', flexDirection: 'column', gap: '1rem',
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: '0.65rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: '#8a6f30' }}>Total</span>
+              <span style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: '1.3rem', color: '#1a1510' }}>PKR {totalPrice.toLocaleString()}</span>
             </div>
             <Link
               to="/cart"
               onClick={closeDrawer}
-              className="bg-gold text-black text-center text-[0.7rem] tracking-[0.2em] uppercase py-4 transition-all hover:bg-gold-light font-sans"
+              style={{
+                background: '#1a1510', color: '#f5f0e8',
+                textAlign: 'center', fontFamily: "'Josefin Sans',sans-serif",
+                fontSize: '0.7rem', letterSpacing: '0.2em',
+                textTransform: 'uppercase', padding: '1rem 0',
+                textDecoration: 'none', transition: 'all 0.3s',
+              }}
+              onMouseEnter={e => {
+                e.currentTarget.style.background = '#c9a84c'
+                e.currentTarget.style.color = '#080806'
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.background = '#1a1510'
+                e.currentTarget.style.color = '#f5f0e8'
+              }}
             >
               Checkout
             </Link>

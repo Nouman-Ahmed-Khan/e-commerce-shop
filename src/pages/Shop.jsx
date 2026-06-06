@@ -1,77 +1,109 @@
 import { useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { products, categories } from '../data/products'
+import { getProductsByCategory, categories } from '../data/products'
 import ProductCard from '../components/ProductCard'
 
 const Shop = () => {
   const [searchParams, setSearchParams] = useSearchParams()
   const [activeCategory, setActiveCategory] = useState(searchParams.get('category') || 'all')
+  const [products, setProducts] = useState([])
 
   useEffect(() => {
-    setActiveCategory(searchParams.get('category') || 'all')
-  }, [searchParams])
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => entries.forEach((e) => { if (e.isIntersecting) { e.target.classList.add('revealed'); observer.unobserve(e.target) } }),
-      { threshold: 0.1 }
-    )
-    document.querySelectorAll('.reveal').forEach((el) => observer.observe(el))
-    return () => observer.disconnect()
+    setProducts(getProductsByCategory(activeCategory))
   }, [activeCategory])
 
-  const filtered = activeCategory === 'all' ? products : products.filter((p) => p.category === activeCategory)
-
-  const handleCategory = (cat) => {
-    setActiveCategory(cat)
-    cat === 'all' ? setSearchParams({}) : setSearchParams({ category: cat })
-  }
+  useEffect(() => {
+    setSearchParams({ category: activeCategory })
+  }, [activeCategory, setSearchParams])
 
   return (
-    <main className="min-h-screen">
+    <main style={{ minHeight: '100vh', background: '#faf7f2' }}>
       {/* Header */}
-      <div className="relative min-h-[40vh] flex items-end px-16 pb-16 max-md:px-6 max-md:pt-32 overflow-hidden">
-        <div className="absolute inset-0"
-          style={{ background: 'radial-gradient(ellipse 60% 80% at 30% 60%, rgba(139,74,42,0.15) 0%, transparent 70%), #0e0d0a' }}
-        />
-        <div className="relative z-10">
-          <span className="text-[0.6rem] tracking-[0.35em] text-gold uppercase block mb-3">Our Collection</span>
-          <h1 className="font-serif font-light text-cream leading-none mb-3" style={{ fontSize: 'clamp(3rem, 7vw, 7rem)' }}>
-            The Shop
-          </h1>
-          <p className="text-[0.75rem] text-cream-dim tracking-widest">Every piece, handcrafted for the discerning.</p>
-        </div>
-      </div>
-
-      {/* Filters + Grid */}
-      <div className="px-16 py-12 max-md:px-4">
-        {/* Filter buttons */}
-        <div className="flex gap-2 flex-wrap pb-8 border-b border-[#c9a84c]/10 mb-6">
-          {categories.map((cat) => (
-            <button
-              key={cat}
-              onClick={() => handleCategory(cat)}
-              className={`text-[0.65rem] tracking-[0.2em] uppercase px-5 py-2.5 border transition-all duration-300 font-sans
-                ${activeCategory === cat
-                  ? 'bg-gold border-gold text-black'
-                  : 'border-transparent text-cream-dim hover:text-cream hover:border-[#c9a84c]/20'
-                }`}
-            >
-              {cat}
-            </button>
-          ))}
-        </div>
-
-        <p className="text-[0.65rem] tracking-[0.2em] text-cream-dim uppercase mb-8">
-          {filtered.length} {filtered.length === 1 ? 'piece' : 'pieces'}
+      <section style={{
+        background: 'linear-gradient(160deg, #faf7f2 0%, #f0ebe0 100%)',
+        padding: '8rem 4rem 4rem',
+        borderBottom: '1px solid rgba(201,168,76,0.12)',
+        textAlign: 'center',
+      }}>
+        <h1 style={{
+          fontFamily: "'Cormorant Garamond',serif", fontSize: 'clamp(3rem,6vw,5rem)',
+          fontWeight: 300, color: '#1a1510', marginBottom: '1rem',
+        }}>
+          The Collection
+        </h1>
+        <p style={{
+          fontSize: '0.75rem', letterSpacing: '0.3em',
+          color: '#8a6f30', textTransform: 'uppercase',
+        }}>
+          {products.length} items
         </p>
+      </section>
 
-        <div className="grid grid-cols-3 gap-px max-lg:grid-cols-2 max-md:grid-cols-1">
-          {filtered.map((product, i) => (
-            <ProductCard key={product.id} product={product} index={i} />
-          ))}
+      {/* Filters */}
+      <section style={{
+        padding: '3rem 4rem', background: '#faf7f2',
+        borderBottom: '1px solid rgba(201,168,76,0.12)',
+      }}>
+        <div style={{ maxWidth: '1300px', margin: '0 auto' }}>
+          <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+            {categories.map((cat) => (
+              <button
+                key={cat}
+                onClick={() => setActiveCategory(cat)}
+                style={{
+                  background: activeCategory === cat ? '#1a1510' : 'none',
+                  color: activeCategory === cat ? '#f5f0e8' : '#1a1510',
+                  border: activeCategory === cat ? 'none' : '1px solid rgba(201,168,76,0.25)',
+                  fontFamily: "'Josefin Sans',sans-serif",
+                  fontSize: '0.65rem', letterSpacing: '0.2em',
+                  textTransform: 'uppercase', padding: '0.7rem 1.8rem',
+                  cursor: 'pointer', transition: 'all 0.3s',
+                }}
+                onMouseEnter={e => {
+                  if (activeCategory !== cat) {
+                    e.target.style.borderColor = '#c9a84c'
+                    e.target.style.color = '#c9a84c'
+                  }
+                }}
+                onMouseLeave={e => {
+                  if (activeCategory !== cat) {
+                    e.target.style.borderColor = 'rgba(201,168,76,0.25)'
+                    e.target.style.color = '#1a1510'
+                  }
+                }}
+              >
+                {cat.charAt(0).toUpperCase() + cat.slice(1)}
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
+      </section>
+
+      {/* Products Grid */}
+      <section style={{ padding: '4rem 0' }}>
+        <div style={{ maxWidth: '1300px', margin: '0 auto', padding: '0 4rem' }}>
+          {products.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '6rem 2rem' }}>
+              <p style={{
+                fontFamily: "'Cormorant Garamond',serif", fontSize: '1.5rem',
+                color: '#8a6f30', marginBottom: '1rem',
+              }}>No products found</p>
+              <p style={{ fontSize: '0.75rem', color: '#8a6f30', letterSpacing: '0.1em' }}>
+                Try selecting a different category
+              </p>
+            </div>
+          ) : (
+            <div style={{
+              display: 'grid', gridTemplateColumns: 'repeat(3,1fr)',
+              gap: '1.5rem',
+            }} className="max-lg:grid-cols-2 max-md:grid-cols-1">
+              {products.map((product, i) => (
+                <ProductCard key={product.id} product={product} index={i} />
+              ))}
+            </div>
+          )}
+        </div>
+      </section>
     </main>
   )
 }

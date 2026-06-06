@@ -23,220 +23,180 @@ const TESTIMONIALS = [
   { text: "Had my initials stamped in gold. The craftsmanship is extraordinary. I've been gifting VELLUM pieces to everyone I know.", author: 'Fatima K.', location: 'Dubai, UAE'            },
 ]
 
-/* ─────────────────────────────────────────
-   SCROLL-DRIVEN WALLET ANIMATION
-   Uses 3 full images — no cropping:
-     wallet-closed.png  → closed wallet
-     wallet-2.png       → mid-open / tilted
-     wallet-open.png    → fully open interior
-   Phases driven by scroll progress 0→1
-───────────────────────────────────────────── */
+const WALLET_FRAMES = [
+  { src: '/images/wallet-01-front-closed.png',       label: 'Closed · Front' },
+  { src: '/images/wallet-02-opened-30deg.png',       label: 'Opening · 30°' },
+  { src: '/images/wallet-03-opened-45deg.png',       label: 'Opening · 45°' },
+  { src: '/images/wallet-04-opened-60deg.png',       label: 'Opening · 60°' },
+  { src: '/images/wallet-05-opened-85deg.png',       label: 'Opening · 85°' },
+  { src: '/images/wallet-06-opened-100deg.png',      label: 'Opening · 100°' },
+  { src: '/images/wallet-07-opened-130deg.png',      label: 'Opening · 130°' },
+  { src: '/images/wallet-08-opened-180deg.png',      label: 'Fully Open · Interior' },
+  { src: '/images/wallet-09-closing-130deg.png',     label: 'Closing · 130°' },
+  { src: '/images/wallet-10-closing-100deg.png',     label: 'Closing · 100°' },
+  { src: '/images/wallet-11-closing-85deg.png',      label: 'Closing · 85°' },
+  { src: '/images/wallet-12-closing-60deg.png',      label: 'Closing · 60°' },
+  { src: '/images/wallet-13-closing-45deg.png',      label: 'Closing · 45°' },
+  { src: '/images/wallet-14-closing-30deg.png',      label: 'Closing · 30°' },
+  { src: '/images/wallet-15-back-closed.png',        label: 'Closed · Back' },
+]
+
 const WalletScrollSection = () => {
   const sectionRef = useRef(null)
-  const imgClosedRef = useRef(null)
-  const imgMidRef    = useRef(null)
-  const imgOpenRef   = useRef(null)
-  const cardRef      = useRef(null)
-  const wrapRef      = useRef(null)
-  const labelRef     = useRef(null)
-  const ctaRef       = useRef(null)
-  const glowRef      = useRef(null)
+  const wrapRef = useRef(null)
+  const labelRef = useRef(null)
+  const imageRefs = useRef([])
 
   useEffect(() => {
+    let ticking = false
+
     const onScroll = () => {
+      if (!ticking) {
+        requestAnimationFrame(() => {
+          updateAnimation()
+          ticking = false
+        })
+        ticking = true
+      }
+    }
+
+    const updateAnimation = () => {
       if (!sectionRef.current) return
-      const rect     = sectionRef.current.getBoundingClientRect()
-      const totalH   = sectionRef.current.offsetHeight - window.innerHeight
+
+      const rect = sectionRef.current.getBoundingClientRect()
+      const totalH = sectionRef.current.offsetHeight - window.innerHeight
       const scrolled = Math.max(0, -rect.top)
-      const p        = Math.min(1, scrolled / totalH)
+      const progress = Math.min(1, scrolled / totalH)
 
-      /*
-        Phase 1 (0.00 – 0.30): closed wallet fully visible, gentle float up
-        Phase 2 (0.30 – 0.55): crossfade closed → mid, card tilts right (opening)
-        Phase 3 (0.55 – 0.80): crossfade mid → open, card returns flat
-        Phase 4 (0.80 – 1.00): fully open, CTA fades in
-      */
+      // Map progress directly to the correct array index
+      const totalFrames = WALLET_FRAMES.length
+      const targetFrame = Math.min(
+        Math.floor(progress * totalFrames),
+        totalFrames - 1
+      )
 
-      // ── Opacity of each image ──
-      let oClosed, oMid, oOpen
+      // Direct DOM manipulation bypasses React re-render cycles for perfect 60fps+
+      imageRefs.current.forEach((img, idx) => {
+        if (img) {
+          img.style.opacity = idx === targetFrame ? '1' : '0'
+        }
+      })
 
-      if (p < 0.30) {
-        oClosed = 1; oMid = 0; oOpen = 0
-      } else if (p < 0.55) {
-        const t = (p - 0.30) / 0.25
-        oClosed = 1 - t; oMid = t; oOpen = 0
-      } else if (p < 0.80) {
-        const t = (p - 0.55) / 0.25
-        oClosed = 0; oMid = 1 - t; oOpen = t
-      } else {
-        oClosed = 0; oMid = 0; oOpen = 1
+      if (labelRef.current && WALLET_FRAMES[targetFrame]) {
+        labelRef.current.textContent = WALLET_FRAMES[targetFrame].label
       }
 
-      if (imgClosedRef.current) imgClosedRef.current.style.opacity = String(oClosed)
-      if (imgMidRef.current)    imgMidRef.current.style.opacity    = String(oMid)
-      if (imgOpenRef.current)   imgOpenRef.current.style.opacity   = String(oOpen)
-
-      // ── 3D tilt: rotate around Y axis during opening phase ──
-      // peaks at ~25° when mid-way through opening, returns to 0 when open
-      let tiltAngle = 0
-      if (p >= 0.30 && p < 0.80) {
-        const t = (p - 0.30) / 0.50            // 0→1 over opening window
-        tiltAngle = Math.sin(t * Math.PI) * 22  // bell curve, peak 22°
-      }
-
-      // ── gentle float (lift) ──
-      const lift  = Math.sin(p * Math.PI) * -16
-      const scale = 0.88 + p * 0.16
-
+      // Smooth subtle lift and scale layer using transform3d for GPU layer optimization
       if (wrapRef.current) {
-        wrapRef.current.style.transform = `translateY(${lift}px) scale(${scale}) rotateY(${tiltAngle}deg)`
-      }
-
-      // ── glow ──
-      if (glowRef.current) {
-        const openAmt = p < 0.55 ? 0 : Math.min(1, (p - 0.55) / 0.25)
-        glowRef.current.style.opacity = String(0.25 + openAmt * 0.75)
-      }
-
-      // ── label ──
-      const labels = [
-        'Closed · Hand-stitched cowhide',
-        'Opening · Vegetable tanned leather',
-        'Open · 8 card slots inside',
-      ]
-      const idx = p < 0.40 ? 0 : p < 0.72 ? 1 : 2
-      if (labelRef.current) labelRef.current.textContent = labels[idx]
-
-      // ── CTA ──
-      if (ctaRef.current) {
-        ctaRef.current.style.opacity = p > 0.84 ? String((p - 0.84) / 0.16) : '0'
+        const lift = Math.sin(progress * Math.PI) * -20
+        const scale = 0.92 + progress * 0.12
+        wrapRef.current.style.transform = `translate3d(-50%, calc(-50% + ${lift}px), 0) scale(${scale})`
       }
     }
 
     window.addEventListener('scroll', onScroll, { passive: true })
-    onScroll()
+    updateAnimation() 
+
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
-
-  const imgStyle = (initial) => ({
-    position: 'absolute',
-    top: '50%', left: '50%',
-    transform: 'translate(-50%, -50%)',
-    width: '100%', height: '100%',
-    objectFit: 'contain',
-    opacity: initial,
-    userSelect: 'none', pointerEvents: 'none',
-    transition: 'opacity 0.12s ease',
-  })
 
   return (
     <section ref={sectionRef} style={{ height: '300vh', position: 'relative' }}>
       <div style={{
         position: 'sticky', top: 0, height: '100vh',
-        background: '#0e0d0a',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        overflow: 'hidden',
+        background: '#0e0d0a', overflow: 'hidden',
+        display: 'flex', alignItems: 'center', justifyContent: 'center'
       }}>
-
-        {/* Background glow */}
-        <div ref={glowRef} style={{
-          position: 'absolute', inset: 0, opacity: 0.25,
-          background: 'radial-gradient(ellipse 60% 55% at 50% 52%, rgba(139,74,42,0.32) 0%, rgba(201,168,76,0.07) 45%, transparent 70%)',
-          transition: 'opacity 0.12s linear',
-          pointerEvents: 'none',
+        
+        <div style={{
+          position: 'absolute', inset: 0,
+          background: 'radial-gradient(ellipse 60% 60% at 50% 50%, rgba(139,74,42,0.15) 0%, rgba(201,168,76,0.03) 40%, transparent 70%)',
+          zIndex: 1
         }}/>
 
-        {/* Left text panel */}
         <div style={{
-          position: 'absolute', left: '5rem', top: '50%', transform: 'translateY(-50%)',
-          maxWidth: '240px', zIndex: 2,
+          position: 'absolute', left: '4rem', top: '50%', transform: 'translateY(-50%)',
+          maxWidth: '320px', zIndex: 2,
         }} className="max-md:hidden">
-          <span style={{ fontSize: '0.58rem', letterSpacing: '0.38em', color: '#c9a84c', textTransform: 'uppercase', display: 'block', marginBottom: '1rem' }}>
+          <span style={{ fontSize: '0.58rem', letterSpacing: '0.38em', color: '#c9a84c', textTransform: 'uppercase', display: 'block', marginBottom: '1.2rem' }}>
             Signature Piece
           </span>
-          <h3 style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: '2rem', fontWeight: 300, color: '#f5f0e8', lineHeight: 1.2, marginBottom: '1rem' }}>
+          <h3 style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: '2.8rem', fontWeight: 300, color: '#f5f0e8', lineHeight: 1.2, marginBottom: '1.5rem' }}>
             The Bifold<br />Masterpiece
           </h3>
-          <p style={{ fontSize: '0.72rem', lineHeight: 1.9, color: '#b8b0a0', marginBottom: '1.2rem' }}>
+          <p style={{ fontSize: '0.8rem', lineHeight: 2, color: '#b8b0a0', marginBottom: '1.5rem' }}>
             Full-grain vegetable tanned leather, hand-stitched with waxed linen thread. Built to age beautifully.
           </p>
           {['Full-grain cowhide','8 card slots','Wax thread stitching','6 colour options'].map((f, i) => (
-            <div key={i} style={{ display: 'flex', gap: '0.6rem', alignItems: 'center', marginBottom: '0.45rem' }}>
+            <div key={i} style={{ display: 'flex', gap: '0.6rem', alignItems: 'center', marginBottom: '0.6rem' }}>
               <span style={{ color: '#c9a84c', fontSize: '0.6rem' }}>—</span>
-              <span style={{ fontSize: '0.62rem', letterSpacing: '0.12em', color: '#b8b0a0', textTransform: 'uppercase' }}>{f}</span>
+              <span style={{ fontSize: '0.7rem', letterSpacing: '0.12em', color: '#b8b0a0', textTransform: 'uppercase' }}>{f}</span>
             </div>
           ))}
         </div>
 
-        {/* ── WALLET IMAGE STACK ── */}
-        <div
-          ref={wrapRef}
-          style={{
-            position: 'relative',
-            width: 'min(460px, 72vw)',
-            height: 'min(460px, 72vw)',
-            zIndex: 3,
-            perspective: '1200px',
-            filter: 'drop-shadow(0 35px 70px rgba(0,0,0,0.9))',
-            transition: 'transform 0.06s linear',
-          }}
-        >
-          <img ref={imgClosedRef} src="/images/wallet-closed.png" alt="Wallet closed" style={imgStyle(1)} />
-          <img ref={imgMidRef}    src="/images/wallet-2.png"      alt="Wallet opening" style={imgStyle(0)} />
-          <img ref={imgOpenRef}   src="/images/wallet-open.png"   alt="Wallet open"   style={imgStyle(0)} />
+        {/* PERSISTENT FRAME STACK LAYER */}
+        <div ref={wrapRef} style={{
+          position: 'absolute', 
+          left: '50%', 
+          top: '50%',
+          width: '480px', 
+          maxWidth: '85vw',
+          aspectRatio: '1', 
+          zIndex: 3,
+          transform: 'translate3d(-50%, -50%, 0) scale(0.92)',
+          willChange: 'transform',
+          background: 'transparent'
+        }}>
+          {WALLET_FRAMES.map((frame, idx) => (
+            <img
+              key={idx}
+              ref={el => imageRefs.current[idx] = el}
+              src={frame.src}
+              alt={frame.label}
+              style={{
+                position: 'absolute', 
+                inset: 0, 
+                width: '100%', 
+                height: '100%',
+                objectFit: 'contain', 
+                objectPosition: 'center',
+                filter: 'drop-shadow(0 30px 60px rgba(0,0,0,0.85))',
+                opacity: idx === 0 ? 1 : 0,
+                transition: 'opacity 0.04s ease-out', 
+                pointerEvents: 'none',
+                backgroundColor: 'transparent'
+              }}
+            />
+          ))}
         </div>
-        {/* ── END WALLET ── */}
 
-        {/* Right text panel */}
         <div style={{
-          position: 'absolute', right: '5rem', top: '50%', transform: 'translateY(-50%)',
-          maxWidth: '240px', textAlign: 'right', zIndex: 2,
+          position: 'absolute', right: '4rem', top: '50%', transform: 'translateY(-50%)',
+          maxWidth: '320px', textAlign: 'right', zIndex: 2,
         }} className="max-md:hidden">
-          <span style={{ fontSize: '0.58rem', letterSpacing: '0.38em', color: '#c9a84c', textTransform: 'uppercase', display: 'block', marginBottom: '1rem' }}>
+          <span style={{ fontSize: '0.58rem', letterSpacing: '0.38em', color: '#c9a84c', textTransform: 'uppercase', display: 'block', marginBottom: '1.2rem' }}>
             Inside View
           </span>
-          <h3 style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: '2rem', fontWeight: 300, color: '#f5f0e8', lineHeight: 1.2, marginBottom: '1rem' }}>
+          <h3 style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: '2.8rem', fontWeight: 300, color: '#f5f0e8', lineHeight: 1.2, marginBottom: '1.5rem' }}>
             Thoughtful<br />Interior
           </h3>
-          <p style={{ fontSize: '0.72rem', lineHeight: 1.9, color: '#b8b0a0' }}>
+          <p style={{ fontSize: '0.8rem', lineHeight: 2, color: '#b8b0a0' }}>
             Three card slots each side, a full-length bill compartment, and a hidden coin pocket. Organised luxury.
           </p>
         </div>
 
-        {/* State label + scroll indicator */}
         <div style={{ position: 'absolute', bottom: '5rem', left: '50%', transform: 'translateX(-50%)', textAlign: 'center', zIndex: 2 }}>
           <p ref={labelRef} style={{
-            fontSize: '0.62rem', letterSpacing: '0.28em',
+            fontSize: '0.65rem', letterSpacing: '0.28em',
             color: '#b8b0a0', textTransform: 'uppercase',
-            marginBottom: '1.5rem', whiteSpace: 'nowrap',
-          }}>Closed · Hand-stitched cowhide</p>
+            marginBottom: '1.8rem', minHeight: '1.5rem',
+          }}>Closed · Front</p>
+
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.4rem' }}>
             <span style={{ fontSize: '0.55rem', letterSpacing: '0.3em', color: '#8a6f30', textTransform: 'uppercase' }}>Scroll</span>
             <div style={{ width: '1px', height: '40px', background: 'linear-gradient(to bottom, #c9a84c, transparent)' }} className="anim-scroll-line"/>
           </div>
-        </div>
-
-        {/* CTA fades in when fully open */}
-        <div ref={ctaRef} style={{
-          position: 'absolute', bottom: '3rem', left: '50%', transform: 'translateX(-50%)',
-          display: 'flex', gap: '1rem', opacity: 0,
-          transition: 'opacity 0.5s ease', zIndex: 4,
-        }}>
-          <Link to="/product/classic-bifold" style={{
-            background: '#c9a84c', color: '#080806',
-            fontFamily: "'Josefin Sans',sans-serif",
-            fontSize: '0.65rem', letterSpacing: '0.2em',
-            textTransform: 'uppercase', padding: '0.8rem 2rem',
-            textDecoration: 'none',
-          }}>Shop This Wallet</Link>
-          <Link to="/shop?category=wallets" style={{
-            background: 'none', color: '#f5f0e8',
-            border: '1px solid rgba(201,168,76,0.3)',
-            fontFamily: "'Josefin Sans',sans-serif",
-            fontSize: '0.65rem', letterSpacing: '0.2em',
-            textTransform: 'uppercase', padding: '0.8rem 2rem',
-            textDecoration: 'none',
-          }}>All Wallets</Link>
         </div>
 
       </div>
@@ -244,10 +204,6 @@ const WalletScrollSection = () => {
   )
 }
 
-
-/* ─────────────────────────────────────────
-   HOME PAGE
-───────────────────────────────────────────── */
 const Home = () => {
   const featured = getFeaturedProducts()
 
@@ -264,28 +220,21 @@ const Home = () => {
 
   return (
     <main>
-
-      {/* ══════════ HERO — LIGHT ══════════ */}
       <section style={{
         minHeight: '100vh',
         background: 'linear-gradient(160deg, #faf7f2 0%, #f0ebe0 50%, #e8e0d0 100%)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        padding: '8rem 3rem 5rem',
+        display: 'flex', alignItems: 'center',
+        padding: '8rem 5rem 5rem',
         position: 'relative', overflow: 'hidden',
       }}>
-        {/* Subtle grain */}
         <div style={{
           position: 'absolute', inset: 0, opacity: 0.018,
           backgroundImage: "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")",
         }}/>
-
-        {/* Gold accent line left */}
         <div style={{
           position: 'absolute', left: '4rem', top: 0, bottom: 0, width: '1px',
           background: 'linear-gradient(to bottom, transparent, rgba(201,168,76,0.3), transparent)',
         }}/>
-
-        {/* Decorative circle */}
         <div style={{
           position: 'absolute', right: '-10rem', top: '-10rem',
           width: '600px', height: '600px', borderRadius: '50%',
@@ -298,41 +247,31 @@ const Home = () => {
           border: '1px solid rgba(201,168,76,0.06)',
           pointerEvents: 'none',
         }}/>
-
-        {/* Content */}
-        <div style={{ position: 'relative', zIndex: 2, maxWidth: '900px', textAlign: 'center', margin: '0 auto' }}>
+        <div style={{ position: 'relative', zIndex: 2, maxWidth: '700px' }}>
           <p className="anim-fade-up anim-d1" style={{
             fontSize: '0.62rem', letterSpacing: '0.45em',
             color: '#c9a84c', textTransform: 'uppercase', marginBottom: '1.8rem',
             fontFamily: "'Josefin Sans',sans-serif",
-          }}>
-            Handcrafted in Pakistan · Est. 2024
-          </p>
-
+          }}>Handcrafted in Pakistan · Est. 2024</p>
           <h1 className="anim-fade-up anim-d2" style={{
             fontFamily: "'Cormorant Garamond',serif", fontWeight: 300,
-            fontSize: 'clamp(2.8rem, 5.5vw, 6.5rem)',
-            lineHeight: '1', color: '#1a1510',
+            fontSize: 'clamp(3.8rem, 7vw, 8rem)',
+            lineHeight: '0.92', color: '#1a1510',
             marginBottom: '1.8rem',
-            whiteSpace: 'nowrap',
           }}>
-            The Art of Fine Leather
+            The Art of<br />
+            <em style={{ fontStyle: 'italic', color: '#8b4a2a' }}>Fine Leather</em>
           </h1>
-
-          {/* Gold divider */}
           <div className="anim-fade-up anim-d3" style={{
-            width: '60px', height: '1px', background: '#c9a84c', marginBottom: '1.8rem', margin: '0 auto 1.8rem',
+            width: '60px', height: '1px', background: '#c9a84c', marginBottom: '1.8rem',
           }}/>
-
           <p className="anim-fade-up anim-d3" style={{
             fontSize: '0.8rem', lineHeight: 2, letterSpacing: '0.06em',
             color: '#4a3f35', maxWidth: '480px', marginBottom: '2.5rem',
-            margin: '0 auto 2.5rem',
           }}>
             Every wallet, belt, and shoe that leaves our workshop carries with it the weight of generations — cut by hand, stitched slowly, finished with care.
           </p>
-
-          <div className="anim-fade-up anim-d4" style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', justifyContent: 'center' }}>
+          <div className="anim-fade-up anim-d4" style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
             <Link to="/shop" style={{
               background: '#1a1510', color: '#f5f0e8',
               fontFamily: "'Josefin Sans',sans-serif",
@@ -341,10 +280,9 @@ const Home = () => {
               textDecoration: 'none', transition: 'all 0.3s',
               display: 'inline-block',
             }}
-            onMouseEnter={e => { e.currentTarget.style.background = '#c9a84c'; e.currentTarget.style.color = '#080806' }}
+            onMouseEnter={e => { e.currentTarget.style.background = '#c9a84c'; e.currentTarget.style.color = '#080606' }}
             onMouseLeave={e => { e.currentTarget.style.background = '#1a1510'; e.currentTarget.style.color = '#f5f0e8' }}
             >Explore Collection</Link>
-
             <a href="#craft" style={{
               background: 'none', color: '#1a1510',
               border: '1px solid rgba(26,21,16,0.3)',
@@ -358,10 +296,8 @@ const Home = () => {
             onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(26,21,16,0.3)'; e.currentTarget.style.color = '#1a1510' }}
             >Our Craft</a>
           </div>
-
-          {/* Scroll hint */}
           <div className="anim-fade-in" style={{
-            marginTop: '4.5rem', display: 'flex', alignItems: 'center', gap: '1.2rem', justifyContent: 'center',
+            marginTop: '4.5rem', display: 'flex', alignItems: 'center', gap: '1.2rem',
           }}>
             <div style={{
               width: '1px', height: '50px',
@@ -373,8 +309,6 @@ const Home = () => {
             }}>Scroll to see the wallet</span>
           </div>
         </div>
-
-        {/* Right: subtle editorial text */}
         <div className="max-md:hidden" style={{
           position: 'absolute', right: '5rem', bottom: '4rem',
           textAlign: 'right',
@@ -388,8 +322,6 @@ const Home = () => {
         </div>
       </section>
 
-
-      {/* ══════════ MARQUEE ══════════ */}
       <div style={{
         borderTop: '1px solid rgba(201,168,76,0.15)',
         borderBottom: '1px solid rgba(201,168,76,0.15)',
@@ -410,12 +342,8 @@ const Home = () => {
         </div>
       </div>
 
-
-      {/* ══════════ WALLET SCROLL SECTION ══════════ */}
       <WalletScrollSection />
 
-
-      {/* ══════════ ABOUT / CRAFT — LIGHT ══════════ */}
       <section id="craft" style={{
         padding: '9rem 5rem', background: '#faf7f2',
         position: 'relative', overflow: 'hidden',
@@ -425,7 +353,6 @@ const Home = () => {
           fontFamily: "'Cormorant Garamond',serif", fontSize: '18rem', fontWeight: 300,
           color: 'rgba(201,168,76,0.04)', pointerEvents: 'none', userSelect: 'none', lineHeight: 1,
         }}>V</div>
-
         <div style={{
           display: 'grid', gridTemplateColumns: '1fr 1fr',
           gap: '7rem', alignItems: 'center',
@@ -457,7 +384,6 @@ const Home = () => {
               ))}
             </div>
           </div>
-
           <div className="reveal" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <div style={{
               width: '100%', maxWidth: '440px', aspectRatio: '1',
@@ -467,42 +393,15 @@ const Home = () => {
               position: 'relative', overflow: 'hidden',
             }}>
               <img
-                src="/images/wallet-open.png"
+                src="/images/wallet-08-opened-180deg.png"
                 alt="Open leather wallet"
                 style={{ width: '85%', objectFit: 'contain', filter: 'drop-shadow(0 20px 40px rgba(0,0,0,0.25))' }}
-                onError={e => {
-                  e.target.style.display = 'none'
-                  e.target.nextSibling.style.display = 'flex'
-                }}
               />
-              {/* Fallback SVG */}
-              <div style={{ display: 'none', width: '100%', height: '100%', alignItems: 'center', justifyContent: 'center' }}>
-                <svg viewBox="0 0 400 300" style={{ width: '85%' }}>
-                  <defs>
-                    <radialGradient id="aG" cx="40%" cy="35%" r="68%">
-                      <stop offset="0%"   stopColor="#c4956a"/>
-                      <stop offset="50%"  stopColor="#7a4a28"/>
-                      <stop offset="100%" stopColor="#2a1508"/>
-                    </radialGradient>
-                  </defs>
-                  <rect x="10" y="30" width="380" height="240" rx="14" fill="url(#aG)" opacity="0.9"/>
-                  <rect x="22" y="42" width="356" height="216" rx="9" fill="none" stroke="rgba(201,168,76,0.4)" strokeWidth="1.2" strokeDasharray="5 4"/>
-                  <line x1="200" y1="30" x2="200" y2="270" stroke="rgba(0,0,0,0.25)" strokeWidth="1.5"/>
-                  <rect x="28" y="60" width="155" height="185" rx="5" fill="rgba(0,0,0,0.12)"/>
-                  <rect x="38" y="72" width="135" height="48" rx="4" fill="rgba(0,0,0,0.2)"/>
-                  <rect x="38" y="126" width="135" height="48" rx="4" fill="rgba(0,0,0,0.17)"/>
-                  <rect x="38" y="180" width="135" height="48" rx="4" fill="rgba(0,0,0,0.14)"/>
-                  <rect x="218" y="60" width="155" height="185" rx="5" fill="rgba(0,0,0,0.1)"/>
-                  <text x="200" y="286" textAnchor="middle" fontFamily="'Cormorant Garamond',serif" fontSize="9" fill="rgba(201,168,76,0.45)" letterSpacing="4">VELLUM</text>
-                </svg>
-              </div>
             </div>
           </div>
         </div>
       </section>
 
-
-      {/* ══════════ FEATURED PRODUCTS — DARK ══════════ */}
       <section style={{ padding: '8rem 0', background: '#0e0d0a' }}>
         <div style={{ maxWidth: '1300px', margin: '0 auto', padding: '0 3.5rem' }}>
           <div className="reveal" style={{ textAlign: 'center', marginBottom: '4.5rem' }}>
@@ -514,14 +413,12 @@ const Home = () => {
               fontSize: 'clamp(2rem,4vw,3.5rem)', color: '#f5f0e8',
             }}>Crafted for the Discerning</h2>
           </div>
-
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '1.5rem' }}
             className="max-lg:grid-cols-2 max-md:grid-cols-1">
             {featured.map((product, i) => (
               <ProductCard key={product.id} product={product} index={i} />
             ))}
           </div>
-
           <div style={{ textAlign: 'center', marginTop: '4rem' }}>
             <Link to="/shop" className="reveal" style={{
               display: 'inline-block',
@@ -538,8 +435,6 @@ const Home = () => {
         </div>
       </section>
 
-
-      {/* ══════════ BESPOKE CTA — DARK ══════════ */}
       <section style={{
         padding: '10rem 4rem', textAlign: 'center',
         background: '#080806', position: 'relative', overflow: 'hidden',
@@ -564,7 +459,7 @@ const Home = () => {
             Every piece can be customised. Choose your leather, colour, stitching, and monogram. We'll craft it to order within 10–14 days.
           </p>
           <Link to="/shop" className="reveal" style={{
-            display: 'inline-block', background: '#c9a84c', color: '#080806',
+            display: 'inline-block', background: '#c9a84c', color: '#080606',
             fontFamily: "'Josefin Sans',sans-serif",
             fontSize: '0.68rem', letterSpacing: '0.22em',
             textTransform: 'uppercase', padding: '1rem 3rem',
@@ -576,8 +471,6 @@ const Home = () => {
         </div>
       </section>
 
-
-      {/* ══════════ TESTIMONIALS — LIGHT ══════════ */}
       <section style={{ padding: '8rem 0', background: '#faf7f2' }}>
         <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 3.5rem' }}>
           <div className="reveal" style={{ textAlign: 'center', marginBottom: '4rem' }}>
@@ -609,8 +502,6 @@ const Home = () => {
         </div>
       </section>
 
-
-      {/* ══════════ NEWSLETTER — DARK ══════════ */}
       <section style={{ padding: '8rem 2rem', textAlign: 'center', background: '#0e0d0a' }}>
         <div className="reveal">
           <span style={{ fontSize: '0.6rem', letterSpacing: '0.38em', color: '#c9a84c', textTransform: 'uppercase', display: 'block', marginBottom: '1rem' }}>
@@ -631,7 +522,7 @@ const Home = () => {
               fontSize: '0.75rem', letterSpacing: '0.08em', outline: 'none',
             }}/>
             <button type="submit" style={{
-              background: '#c9a84c', border: '1px solid #c9a84c', color: '#080806',
+              background: '#c9a84c', border: '1px solid #c9a84c', color: '#080606',
               padding: '0.95rem 2rem',
               fontFamily: "'Josefin Sans',sans-serif",
               fontSize: '0.65rem', letterSpacing: '0.2em',
@@ -643,7 +534,6 @@ const Home = () => {
           </form>
         </div>
       </section>
-
     </main>
   )
 }

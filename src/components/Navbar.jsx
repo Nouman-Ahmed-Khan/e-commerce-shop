@@ -9,6 +9,7 @@ const navLinks = [
   { label: 'Shoes',       to: '/shop?category=shoes' },
   { label: 'Accessories', to: '/shop?category=accessories' },
   { label: 'Bags',        to: '/shop?category=bags' },
+  { label: 'Bespoke',     to: '/shop' },
 ]
 
 const Navbar = () => {

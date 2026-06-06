@@ -1,139 +1,260 @@
-import { useState, useEffect } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useState } from 'react'
+import { useParams, Link, useNavigate } from 'react-router-dom'
+import { ArrowLeft, Check } from 'lucide-react'
 import { getProductBySlug } from '../data/products'
 import { useCart } from '../context/CartContext'
-import { ArrowLeft, Check } from 'lucide-react'
 
 const ProductDetail = () => {
   const { slug } = useParams()
   const product = getProductBySlug(slug)
+  const navigate = useNavigate()
   const { addItem, openDrawer } = useCart()
-  const [selectedColor, setSelectedColor] = useState(null)
+  const [selectedColor, setSelectedColor] = useState(product?.colors[0]?.name || '')
+  const [quantity, setQuantity] = useState(1)
   const [added, setAdded] = useState(false)
 
-  useEffect(() => {
-    if (product) setSelectedColor(product.colors[0].name)
-    window.scrollTo(0, 0)
-  }, [product])
+  if (!product) {
+    return (
+      <main style={{ minHeight: '100vh', background: '#faf7f2', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ textAlign: 'center' }}>
+          <p style={{ fontSize: '1.2rem', color: '#8a6f30', marginBottom: '1rem' }}>Product not found</p>
+          <Link to="/shop" style={{
+            color: '#c9a84c', textDecoration: 'none', fontSize: '0.75rem',
+            letterSpacing: '0.2em', textTransform: 'uppercase',
+          }}>Back to shop</Link>
+        </div>
+      </main>
+    )
+  }
 
-  if (!product) return (
-    <div className="min-h-screen flex flex-col items-center justify-center gap-6 text-center px-6">
-      <h2 className="font-serif text-3xl text-cream font-light">Product not found</h2>
-      <Link to="/shop" className="border border-[#c9a84c]/20 text-cream text-[0.7rem] tracking-[0.2em] uppercase px-8 py-3 hover:border-gold hover:text-gold transition-all font-sans">
-        Back to Shop
-      </Link>
-    </div>
-  )
-
-  const activeColor = product.colors.find(c => c.name === selectedColor) || product.colors[0]
-
-  const handleAdd = () => {
-    addItem(product, selectedColor)
+  const handleAddToCart = () => {
+    for (let i = 0; i < quantity; i++) {
+      addItem(product, selectedColor)
+    }
     openDrawer()
     setAdded(true)
     setTimeout(() => setAdded(false), 2000)
   }
 
   return (
-    <main className="min-h-screen pt-28 pb-20 px-16 max-md:px-6">
-      {/* Back */}
-      <Link to="/shop" className="inline-flex items-center gap-2 text-[0.65rem] tracking-[0.2em] uppercase text-cream-dim hover:text-gold transition-colors mb-12 font-sans">
-        <ArrowLeft size={15} /> Back to Shop
-      </Link>
+    <main style={{ minHeight: '100vh', background: '#faf7f2', paddingTop: '5rem' }}>
+      {/* Breadcrumb */}
+      <div style={{ padding: '2rem 4rem', borderBottom: '1px solid rgba(201,168,76,0.12)' }}>
+        <button onClick={() => navigate(-1)} style={{
+          display: 'flex', alignItems: 'center', gap: '0.6rem',
+          background: 'none', border: 'none', cursor: 'pointer',
+          color: '#8a6f30', fontFamily: "'Josefin Sans',sans-serif",
+          fontSize: '0.65rem', letterSpacing: '0.15em', textTransform: 'uppercase',
+          transition: 'color 0.3s',
+        }}
+        onMouseEnter={e => e.currentTarget.style.color = '#c9a84c'}
+        onMouseLeave={e => e.currentTarget.style.color = '#8a6f30'}
+        >
+          <ArrowLeft size={14} /> Back
+        </button>
+      </div>
 
-      <div className="grid grid-cols-2 gap-24 max-w-[1200px] mx-auto max-md:grid-cols-1 max-md:gap-12">
-        {/* IMAGE */}
-        <div className="flex flex-col gap-4">
-          <div
-            className="aspect-[4/3] flex flex-col items-center justify-center gap-2 opacity-80 transition-all duration-400"
-            style={{ background: activeColor.hex + '88' }}
-          >
-            <span className="font-serif text-2xl text-cream/60 tracking-widest">{product.name}</span>
-            <span className="text-[0.6rem] tracking-[0.25em] text-cream/40 uppercase">{selectedColor}</span>
-          </div>
-          {/* Color swatches as mini thumbnails */}
-          <div className="flex gap-2">
-            {product.colors.map((c) => (
-              <button
-                key={c.name}
-                onClick={() => setSelectedColor(c.name)}
-                title={c.name}
-                className={`w-10 h-10 transition-all duration-300 ${selectedColor === c.name ? 'ring-2 ring-gold ring-offset-2 ring-offset-black' : ''}`}
-                style={{ background: c.hex }}
-              />
-            ))}
+      {/* Content */}
+      <section style={{
+        maxWidth: '1300px', margin: '0 auto', padding: '4rem',
+        display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '4rem',
+      }} className="max-lg:grid-cols-1">
+        {/* Left: Image */}
+        <div style={{
+          position: 'sticky', top: '8rem', height: 'fit-content',
+          background: 'linear-gradient(145deg, #e8e0d0 0%, #d4c8b8 100%)',
+          borderRadius: '2px', padding: '2rem',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          border: '1px solid rgba(201,168,76,0.15)',
+          minHeight: '500px',
+        }}>
+          <div style={{
+            width: '100%', aspectRatio: '1',
+            background: product.colors.find(c => c.name === selectedColor)?.hex || '#3a1f0a',
+            borderRadius: '2px', position: 'relative',
+          }}>
+            <img
+              src={product.images[0] || '/images/wallet-closed.png'}
+              alt={product.name}
+              style={{
+                width: '100%', height: '100%', objectFit: 'contain',
+                padding: '1rem',
+                filter: 'drop-shadow(0 20px 40px rgba(0,0,0,0.25))',
+              }}
+              onError={e => {
+                e.target.style.display = 'none'
+              }}
+            />
           </div>
         </div>
 
-        {/* INFO */}
-        <div className="flex flex-col pt-2">
-          {product.tag && (
-            <span className="inline-block bg-gold text-black text-[0.55rem] tracking-[0.15em] uppercase px-3 py-1 mb-4 w-fit font-sans">
-              {product.tag}
+        {/* Right: Details */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+          <div>
+            <span style={{
+              fontSize: '0.6rem', letterSpacing: '0.35em', color: '#c9a84c',
+              textTransform: 'uppercase', display: 'block', marginBottom: '0.8rem',
+            }}>
+              {product.category.toUpperCase()}
             </span>
-          )}
+            <h1 style={{
+              fontFamily: "'Cormorant Garamond',serif", fontSize: '3rem',
+              fontWeight: 300, color: '#1a1510', lineHeight: 1, marginBottom: '0.8rem',
+            }}>
+              {product.name}
+            </h1>
+            <p style={{
+              fontSize: '0.75rem', letterSpacing: '0.2em',
+              color: '#c9a84c', textTransform: 'uppercase', marginBottom: '1.2rem',
+            }}>
+              {product.subtitle}
+            </p>
+            <p style={{
+              fontSize: '0.95rem', lineHeight: 2, color: '#4a3f35',
+              letterSpacing: '0.04em',
+            }}>
+              {product.description}
+            </p>
+          </div>
 
-          <h1 className="font-serif font-light text-cream leading-tight mb-2" style={{ fontSize: 'clamp(2rem, 3.5vw, 3.5rem)' }}>
-            {product.name}
-          </h1>
-          <p className="text-[0.65rem] tracking-[0.2em] text-gold uppercase mb-6">{product.subtitle}</p>
-          <p className="font-serif text-3xl text-cream font-light mb-6">PKR {product.price.toLocaleString()}</p>
-
-          <div className="h-px bg-[#c9a84c]/10 mb-6" />
-
-          <p className="text-[0.8rem] leading-8 text-cream-dim tracking-wide mb-8">{product.description}</p>
+          {/* Price */}
+          <div style={{ borderTop: '1px solid rgba(201,168,76,0.15)', paddingTop: '1.5rem' }}>
+            <p style={{
+              fontFamily: "'Cormorant Garamond',serif", fontSize: '2rem',
+              color: '#1a1510', marginBottom: '0.5rem',
+            }}>
+              PKR {product.price.toLocaleString()}
+            </p>
+            <p style={{ fontSize: '0.65rem', color: '#8a6f30', letterSpacing: '0.1em' }}>
+              {product.inStock ? 'In Stock' : 'Out of Stock'}
+            </p>
+          </div>
 
           {/* Color picker */}
-          <div className="mb-8">
-            <p className="text-[0.65rem] tracking-[0.2em] uppercase text-cream-dim mb-3 font-sans">
-              Colour: <span className="text-cream">{selectedColor}</span>
-            </p>
-            <div className="flex gap-2 flex-wrap">
-              {product.colors.map((c) => (
+          <div>
+            <label style={{
+              fontSize: '0.7rem', letterSpacing: '0.2em',
+              color: '#1a1510', textTransform: 'uppercase', display: 'block',
+              marginBottom: '1rem',
+            }}>
+              Choose Colour: <span style={{ color: '#c9a84c' }}>{selectedColor}</span>
+            </label>
+            <div style={{ display: 'flex', gap: '0.8rem', flexWrap: 'wrap' }}>
+              {product.colors.map((color) => (
                 <button
-                  key={c.name}
-                  onClick={() => setSelectedColor(c.name)}
-                  title={c.name}
-                  className={`w-8 h-8 flex items-center justify-center transition-all duration-300
-                    ${selectedColor === c.name ? 'ring-2 ring-gold ring-offset-2 ring-offset-black scale-110' : ''}`}
-                  style={{ background: c.hex }}
+                  key={color.name}
+                  onClick={() => setSelectedColor(color.name)}
+                  title={color.name}
+                  style={{
+                    width: '50px', height: '50px', borderRadius: '2px',
+                    background: color.hex, border: selectedColor === color.name ? '2px solid #c9a84c' : '2px solid rgba(201,168,76,0.2)',
+                    cursor: 'pointer', transition: 'all 0.3s',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    position: 'relative',
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.08)'}
+                  onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
                 >
-                  {selectedColor === c.name && <Check size={10} color="#fff" />}
+                  {selectedColor === color.name && (
+                    <Check size={20} color="#c9a84c" strokeWidth={3} />
+                  )}
                 </button>
               ))}
             </div>
           </div>
 
-          <button
-            onClick={handleAdd}
-            className={`w-full py-4 text-[0.75rem] tracking-[0.2em] uppercase transition-all duration-300 mb-6 font-sans
-              ${added ? 'bg-emerald-800 text-white' : 'bg-gold text-black hover:bg-gold-light'}`}
+          {/* Quantity */}
+          <div>
+            <label style={{
+              fontSize: '0.7rem', letterSpacing: '0.2em',
+              color: '#1a1510', textTransform: 'uppercase', display: 'block',
+              marginBottom: '0.8rem',
+            }}>Quantity</label>
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: '1rem',
+              width: 'fit-content', border: '1px solid rgba(201,168,76,0.2)',
+              padding: '0.5rem 1rem',
+            }}>
+              <button onClick={() => setQuantity(Math.max(1, quantity - 1))} style={{
+                background: 'none', border: 'none', color: '#8a6f30',
+                cursor: 'pointer', fontSize: '1rem', padding: '0',
+              }}>−</button>
+              <span style={{
+                fontFamily: "'Cormorant Garamond',serif", fontSize: '1.2rem',
+                color: '#1a1510', minWidth: '30px', textAlign: 'center',
+              }}>{quantity}</span>
+              <button onClick={() => setQuantity(quantity + 1)} style={{
+                background: 'none', border: 'none', color: '#8a6f30',
+                cursor: 'pointer', fontSize: '1rem', padding: '0',
+              }}>+</button>
+            </div>
+          </div>
+
+          {/* Add to Cart */}
+          <button onClick={handleAddToCart} style={{
+            background: added ? '#4caf50' : '#1a1510',
+            color: added ? '#ffffff' : '#f5f0e8',
+            fontFamily: "'Josefin Sans',sans-serif",
+            fontSize: '0.75rem', letterSpacing: '0.2em',
+            textTransform: 'uppercase', padding: '1.2rem 0',
+            border: 'none', cursor: 'pointer', transition: 'all 0.3s',
+            fontWeight: 500,
+          }}
+          onMouseEnter={e => {
+            if (!added) {
+              e.currentTarget.style.background = '#c9a84c'
+              e.currentTarget.style.color = '#080606'
+            }
+          }}
+          onMouseLeave={e => {
+            if (!added) {
+              e.currentTarget.style.background = '#1a1510'
+              e.currentTarget.style.color = '#f5f0e8'
+            }
+          }}
           >
             {added ? '✓ Added to Cart' : 'Add to Cart'}
           </button>
 
-          <div className="h-px bg-[#c9a84c]/10 mb-6" />
-
           {/* Details */}
-          <div className="mb-8">
-            <p className="text-[0.65rem] tracking-[0.25em] uppercase text-gold mb-4 font-sans">Details</p>
-            <ul className="space-y-2">
-              {product.details.map((d, i) => (
-                <li key={i} className="flex gap-3 text-[0.75rem] text-cream-dim leading-relaxed tracking-wide">
-                  <span className="text-gold shrink-0">—</span>{d}
+          <div style={{
+            borderTop: '1px solid rgba(201,168,76,0.15)',
+            paddingTop: '2rem',
+          }}>
+            <h3 style={{
+              fontFamily: "'Cormorant Garamond',serif", fontSize: '1.3rem',
+              fontWeight: 300, color: '#1a1510', marginBottom: '1rem',
+            }}>Product Details</h3>
+            <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.7rem' }}>
+              {product.details.map((detail, i) => (
+                <li key={i} style={{
+                  fontSize: '0.75rem', lineHeight: 1.8,
+                  color: '#4a3f35', letterSpacing: '0.04em',
+                  paddingLeft: '1.2rem', position: 'relative',
+                }}>
+                  <span style={{ position: 'absolute', left: 0, color: '#c9a84c' }}>•</span>
+                  {detail}
                 </li>
               ))}
             </ul>
           </div>
 
           {/* Shipping */}
-          <div className="border border-[#c9a84c]/10 bg-surface p-5 space-y-2">
-            {['🚚 Free shipping on orders over PKR 5,000', '🔄 30-day returns', '✦ Lifetime craftsmanship guarantee'].map((s, i) => (
-              <p key={i} className="text-[0.68rem] text-cream-dim tracking-wide">{s}</p>
-            ))}
+          <div style={{
+            background: '#f0ebe0', border: '1px solid rgba(201,168,76,0.15)',
+            padding: '1.5rem', borderRadius: '2px',
+          }}>
+            <p style={{
+              fontSize: '0.7rem', letterSpacing: '0.2em',
+              color: '#8a6f30', textTransform: 'uppercase', marginBottom: '0.6rem',
+            }}>Shipping & Returns</p>
+            <p style={{
+              fontSize: '0.75rem', lineHeight: 1.8,
+              color: '#4a3f35', letterSpacing: '0.04em',
+            }}>Free shipping on orders over PKR 5,000. Returns accepted within 14 days. All items handcrafted to order.</p>
           </div>
         </div>
-      </div>
+      </section>
     </main>
   )
 }

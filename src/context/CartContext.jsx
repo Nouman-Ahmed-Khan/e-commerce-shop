@@ -62,7 +62,9 @@ export const CartProvider = ({ children }) => {
     try {
       const saved = localStorage.getItem('vellum-cart')
       return saved ? { ...init, items: JSON.parse(saved) } : init
-    } catch { return init }
+    } catch {
+      return init
+    }
   })
 
   useEffect(() => {
@@ -81,19 +83,28 @@ export const CartProvider = ({ children }) => {
   const totalPrice = state.items.reduce((sum, i) => sum + i.price * i.quantity, 0)
 
   return (
-    <CartContext.Provider value={{
-      items: state.items, isOpen: state.isOpen,
-      addItem, removeItem, updateQuantity, clearCart,
-      toggleDrawer, openDrawer, closeDrawer,
-      totalItems, totalPrice,
-    }}>
+    <CartContext.Provider
+      value={{
+        items: state.items,
+        isOpen: state.isOpen,
+        addItem,
+        removeItem,
+        updateQuantity,
+        clearCart,
+        toggleDrawer,
+        openDrawer,
+        closeDrawer,
+        totalItems,
+        totalPrice,
+      }}
+    >
       {children}
     </CartContext.Provider>
   )
 }
 
 export const useCart = () => {
-  const ctx = useContext(CartContext)
-  if (!ctx) throw new Error('useCart must be used within CartProvider')
-  return ctx
+  const context = useContext(CartContext)
+  if (!context) throw new Error('useCart must be used within CartProvider')
+  return context
 }
