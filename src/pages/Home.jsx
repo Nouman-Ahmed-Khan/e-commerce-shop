@@ -3,11 +3,11 @@ import { Link } from 'react-router-dom'
 import { getFeaturedProducts } from '../data/products'
 import ProductCard from '../components/ProductCard'
 
-const MARQUEE = [
-  'Full Grain Leather','Handstitched','Bespoke Orders',
-  'Vegetable Tanned','Lifetime Warranty','Worldwide Shipping',
-  'Full Grain Leather','Handstitched','Bespoke Orders',
-  'Vegetable Tanned','Lifetime Warranty','Worldwide Shipping',
+/* ── Static data ── */
+const MARQUEE_ITEMS = [
+  'Full Grain Leather','Handstitched','Bespoke Orders','Vegetable Tanned',
+  'Lifetime Warranty','Worldwide Shipping','Full Grain Leather','Handstitched',
+  'Bespoke Orders','Vegetable Tanned','Lifetime Warranty','Worldwide Shipping',
 ]
 
 const STATS = [
@@ -18,184 +18,154 @@ const STATS = [
 ]
 
 const TESTIMONIALS = [
-  { text: "The bifold wallet I ordered has aged to the most beautiful deep mahogany. Three years later, it's the best purchase I've ever made.", author: 'Ahmed R.', location: 'Karachi, Pakistan' },
-  { text: "Shipped to London in under a week. The quality rivals anything from the European fashion houses — and at a fraction of the price.", author: 'James T.', location: 'London, UK'          },
-  { text: "Had my initials stamped in gold. The craftsmanship is extraordinary. I've been gifting VELLUM pieces to everyone I know.", author: 'Fatima K.', location: 'Dubai, UAE'            },
+  {
+    text: "The bifold wallet I ordered has aged to the most beautiful deep mahogany. Three years later, it's the best purchase I've ever made.",
+    author: 'Ahmed R.', location: 'Karachi, Pakistan',
+  },
+  {
+    text: "Shipped to London in under a week. The quality rivals anything from the European fashion houses — and at a fraction of the price.",
+    author: 'James T.', location: 'London, UK',
+  },
+  {
+    text: "Had my initials stamped in gold. The craftsmanship is extraordinary. I've been gifting VELLUM pieces to everyone I know.",
+    author: 'Fatima K.', location: 'Dubai, UAE',
+  },
 ]
 
-const WALLET_FRAMES = [
-  { src: '/images/wallet-01-front-closed.png',       label: 'Closed · Front' },
-  { src: '/images/wallet-02-opened-30deg.png',       label: 'Opening · 30°' },
-  { src: '/images/wallet-03-opened-45deg.png',       label: 'Opening · 45°' },
-  { src: '/images/wallet-04-opened-60deg.png',       label: 'Opening · 60°' },
-  { src: '/images/wallet-05-opened-85deg.png',       label: 'Opening · 85°' },
-  { src: '/images/wallet-06-opened-100deg.png',      label: 'Opening · 100°' },
-  { src: '/images/wallet-07-opened-130deg.png',      label: 'Opening · 130°' },
-  { src: '/images/wallet-08-opened-180deg.png',      label: 'Fully Open · Interior' },
-  { src: '/images/wallet-09-closing-130deg.png',     label: 'Closing · 130°' },
-  { src: '/images/wallet-10-closing-100deg.png',     label: 'Closing · 100°' },
-  { src: '/images/wallet-11-closing-85deg.png',      label: 'Closing · 85°' },
-  { src: '/images/wallet-12-closing-60deg.png',      label: 'Closing · 60°' },
-  { src: '/images/wallet-13-closing-45deg.png',      label: 'Closing · 45°' },
-  { src: '/images/wallet-14-closing-30deg.png',      label: 'Closing · 30°' },
-  { src: '/images/wallet-15-back-closed.png',        label: 'Closed · Back' },
-]
-
+/* ── Wallet scroll animation ── */
 const WalletScrollSection = () => {
   const sectionRef = useRef(null)
-  const wrapRef = useRef(null)
-  const labelRef = useRef(null)
-  const imageRefs = useRef([])
+  const wrapRef    = useRef(null)
+  const labelRef   = useRef(null)
+  const closedRef  = useRef(null)
+  const midRef     = useRef(null)
+  const openRef    = useRef(null)
 
   useEffect(() => {
-    let ticking = false
+    const lerp  = (a, b, t) => a + (b - a) * Math.max(0, Math.min(1, t))
+    const inv   = (lo, hi, p) => Math.max(0, Math.min(1, (p - lo) / (hi - lo)))
 
+    let raf = null
     const onScroll = () => {
-      if (!ticking) {
-        requestAnimationFrame(() => {
-          updateAnimation()
-          ticking = false
-        })
-        ticking = true
-      }
-    }
+      if (raf) return
+      raf = requestAnimationFrame(() => {
+        raf = null
+        if (!sectionRef.current) return
+        const rect   = sectionRef.current.getBoundingClientRect()
+        const totalH = sectionRef.current.offsetHeight - window.innerHeight
+        const p      = Math.min(1, Math.max(0, -rect.top / totalH))
 
-    const updateAnimation = () => {
-      if (!sectionRef.current) return
+        // Opacities
+        const oClosed = p < 0.20 ? 1 : lerp(1, 0, inv(0.20, 0.45, p))
+        const oMid    = lerp(0, 1, inv(0.20, 0.45, p)) * lerp(1, 0, inv(0.45, 0.70, p))
+        const oOpen   = lerp(0, 1, inv(0.45, 0.70, p))
 
-      const rect = sectionRef.current.getBoundingClientRect()
-      const totalH = sectionRef.current.offsetHeight - window.innerHeight
-      const scrolled = Math.max(0, -rect.top)
-      const progress = Math.min(1, scrolled / totalH)
+        if (closedRef.current) closedRef.current.style.opacity = oClosed.toFixed(3)
+        if (midRef.current)    midRef.current.style.opacity    = oMid.toFixed(3)
+        if (openRef.current)   openRef.current.style.opacity   = oOpen.toFixed(3)
 
-      // Map progress directly to the correct array index
-      const totalFrames = WALLET_FRAMES.length
-      const targetFrame = Math.min(
-        Math.floor(progress * totalFrames),
-        totalFrames - 1
-      )
+        // 3-D tilt during opening
+        const tilt  = Math.sin(Math.max(0, Math.min(1, (p - 0.20) / 0.50)) * Math.PI) * 20
+        const lift  = Math.sin(p * Math.PI) * -20
+        const scale = lerp(0.88, 1.04, inv(0, 0.80, p))
 
-      // Direct DOM manipulation bypasses React re-render cycles for perfect 60fps+
-      imageRefs.current.forEach((img, idx) => {
-        if (img) {
-          img.style.opacity = idx === targetFrame ? '1' : '0'
+        if (wrapRef.current) {
+          wrapRef.current.style.transform =
+            `translateY(${lift.toFixed(1)}px) scale(${scale.toFixed(3)}) rotateY(${tilt.toFixed(1)}deg)`
+        }
+
+        // Label
+        if (labelRef.current) {
+          labelRef.current.textContent =
+            p < 0.30 ? 'Closed · Hand-stitched cowhide' :
+            p < 0.68 ? 'Opening · Vegetable tanned leather' :
+                       'Open · 8 card slots inside'
         }
       })
-
-      if (labelRef.current && WALLET_FRAMES[targetFrame]) {
-        labelRef.current.textContent = WALLET_FRAMES[targetFrame].label
-      }
-
-      // Smooth subtle lift and scale layer using transform3d for GPU layer optimization
-      if (wrapRef.current) {
-        const lift = Math.sin(progress * Math.PI) * -20
-        const scale = 0.92 + progress * 0.12
-        wrapRef.current.style.transform = `translate3d(-50%, calc(-50% + ${lift}px), 0) scale(${scale})`
-      }
     }
 
     window.addEventListener('scroll', onScroll, { passive: true })
-    updateAnimation() 
-
-    return () => window.removeEventListener('scroll', onScroll)
+    onScroll()
+    return () => { window.removeEventListener('scroll', onScroll); if (raf) cancelAnimationFrame(raf) }
   }, [])
 
-  return (
-    <section ref={sectionRef} style={{ height: '300vh', position: 'relative' }}>
-      <div style={{
-        position: 'sticky', top: 0, height: '100vh',
-        background: '#0e0d0a', overflow: 'hidden',
-        display: 'flex', alignItems: 'center', justifyContent: 'center'
-      }}>
-        
-        <div style={{
-          position: 'absolute', inset: 0,
-          background: 'radial-gradient(ellipse 60% 60% at 50% 50%, rgba(139,74,42,0.15) 0%, rgba(201,168,76,0.03) 40%, transparent 70%)',
-          zIndex: 1
-        }}/>
+  const imgBase = {
+    position: 'absolute', inset: 0, width: '100%', height: '100%',
+    objectFit: 'contain', pointerEvents: 'none', userSelect: 'none',
+    filter: 'drop-shadow(0 28px 56px rgba(0,0,0,0.9))',
+  }
 
-        <div style={{
-          position: 'absolute', left: '4rem', top: '50%', transform: 'translateY(-50%)',
-          maxWidth: '320px', zIndex: 2,
-        }} className="max-md:hidden">
-          <span style={{ fontSize: '0.58rem', letterSpacing: '0.38em', color: '#c9a84c', textTransform: 'uppercase', display: 'block', marginBottom: '1.2rem' }}>
+  return (
+    <section ref={sectionRef} className="h-[300vh] relative">
+      <div className="sticky top-0 h-screen bg-deep overflow-hidden flex items-center justify-center">
+
+        {/* Ambient glow */}
+        <div className="absolute inset-0 z-0 pointer-events-none"
+          style={{ background: 'radial-gradient(ellipse 60% 55% at 50% 52%, rgba(139,74,42,0.2) 0%, rgba(201,168,76,0.04) 45%, transparent 70%)' }}
+        />
+
+        {/* Left panel */}
+        <div className="absolute left-14 top-1/2 -translate-y-1/2 max-w-[280px] z-[2] max-lg:hidden">
+          <span className="font-sans text-[0.56rem] tracking-[0.38em] text-gold uppercase block mb-5">
             Signature Piece
           </span>
-          <h3 style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: '2.8rem', fontWeight: 300, color: '#f5f0e8', lineHeight: 1.2, marginBottom: '1.5rem' }}>
+          <h3 className="font-serif font-light text-[2.6rem] text-cream leading-[1.15] mb-5">
             The Bifold<br />Masterpiece
           </h3>
-          <p style={{ fontSize: '0.8rem', lineHeight: 2, color: '#b8b0a0', marginBottom: '1.5rem' }}>
-            Full-grain vegetable tanned leather, hand-stitched with waxed linen thread. Built to age beautifully.
+          <p className="font-sans text-[0.75rem] leading-loose text-cream-dim mb-5">
+            Full-grain vegetable tanned leather, hand-stitched with waxed linen thread.
+            Built to age beautifully.
           </p>
-          {['Full-grain cowhide','8 card slots','Wax thread stitching','6 colour options'].map((f, i) => (
-            <div key={i} style={{ display: 'flex', gap: '0.6rem', alignItems: 'center', marginBottom: '0.6rem' }}>
-              <span style={{ color: '#c9a84c', fontSize: '0.6rem' }}>—</span>
-              <span style={{ fontSize: '0.7rem', letterSpacing: '0.12em', color: '#b8b0a0', textTransform: 'uppercase' }}>{f}</span>
+          {['Full-grain cowhide','8 card slots','Wax thread stitching','6 colour options'].map((f) => (
+            <div key={f} className="flex items-center gap-3 mb-2">
+              <span className="text-gold text-[0.55rem]">—</span>
+              <span className="font-sans text-[0.65rem] tracking-[0.1em] text-cream-dim uppercase">{f}</span>
             </div>
           ))}
         </div>
 
-        {/* PERSISTENT FRAME STACK LAYER */}
-        <div ref={wrapRef} style={{
-          position: 'absolute', 
-          left: '50%', 
-          top: '50%',
-          width: '480px', 
-          maxWidth: '85vw',
-          aspectRatio: '1', 
-          zIndex: 3,
-          transform: 'translate3d(-50%, -50%, 0) scale(0.92)',
-          willChange: 'transform',
-          background: 'transparent'
-        }}>
-          {WALLET_FRAMES.map((frame, idx) => (
-            <img
-              key={idx}
-              ref={el => imageRefs.current[idx] = el}
-              src={frame.src}
-              alt={frame.label}
-              style={{
-                position: 'absolute', 
-                inset: 0, 
-                width: '100%', 
-                height: '100%',
-                objectFit: 'contain', 
-                objectPosition: 'center',
-                filter: 'drop-shadow(0 30px 60px rgba(0,0,0,0.85))',
-                opacity: idx === 0 ? 1 : 0,
-                transition: 'opacity 0.04s ease-out', 
-                pointerEvents: 'none',
-                backgroundColor: 'transparent'
-              }}
-            />
-          ))}
+        {/* Wallet images */}
+        <div
+          ref={wrapRef}
+          className="relative z-[3] will-change-transform"
+          style={{
+            width: 'min(440px, 70vw)',
+            height: 'min(440px, 70vw)',
+            perspective: '1000px',
+            transition: 'transform 0.05s linear',
+          }}
+        >
+          <img ref={closedRef} src="/images/wallet-closed.png" alt="Wallet closed"
+            style={{ ...imgBase, opacity: 1 }} />
+          <img ref={midRef}    src="/images/wallet-2.png"      alt="Wallet opening"
+            style={{ ...imgBase, opacity: 0 }} />
+          <img ref={openRef}   src="/images/wallet-open.png"   alt="Wallet open"
+            style={{ ...imgBase, opacity: 0 }} />
         </div>
 
-        <div style={{
-          position: 'absolute', right: '4rem', top: '50%', transform: 'translateY(-50%)',
-          maxWidth: '320px', textAlign: 'right', zIndex: 2,
-        }} className="max-md:hidden">
-          <span style={{ fontSize: '0.58rem', letterSpacing: '0.38em', color: '#c9a84c', textTransform: 'uppercase', display: 'block', marginBottom: '1.2rem' }}>
+        {/* Right panel */}
+        <div className="absolute right-14 top-1/2 -translate-y-1/2 max-w-[280px] text-right z-[2] max-lg:hidden">
+          <span className="font-sans text-[0.56rem] tracking-[0.38em] text-gold uppercase block mb-5">
             Inside View
           </span>
-          <h3 style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: '2.8rem', fontWeight: 300, color: '#f5f0e8', lineHeight: 1.2, marginBottom: '1.5rem' }}>
+          <h3 className="font-serif font-light text-[2.6rem] text-cream leading-[1.15] mb-5">
             Thoughtful<br />Interior
           </h3>
-          <p style={{ fontSize: '0.8rem', lineHeight: 2, color: '#b8b0a0' }}>
-            Three card slots each side, a full-length bill compartment, and a hidden coin pocket. Organised luxury.
+          <p className="font-sans text-[0.75rem] leading-loose text-cream-dim">
+            Three card slots each side, a full-length bill compartment,
+            and a hidden coin pocket. Organised luxury.
           </p>
         </div>
 
-        <div style={{ position: 'absolute', bottom: '5rem', left: '50%', transform: 'translateX(-50%)', textAlign: 'center', zIndex: 2 }}>
-          <p ref={labelRef} style={{
-            fontSize: '0.65rem', letterSpacing: '0.28em',
-            color: '#b8b0a0', textTransform: 'uppercase',
-            marginBottom: '1.8rem', minHeight: '1.5rem',
-          }}>Closed · Front</p>
-
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.4rem' }}>
-            <span style={{ fontSize: '0.55rem', letterSpacing: '0.3em', color: '#8a6f30', textTransform: 'uppercase' }}>Scroll</span>
-            <div style={{ width: '1px', height: '40px', background: 'linear-gradient(to bottom, #c9a84c, transparent)' }} className="anim-scroll-line"/>
+        {/* Label + scroll indicator */}
+        <div className="absolute bottom-14 left-1/2 -translate-x-1/2 text-center z-[2]">
+          <p ref={labelRef}
+            className="font-sans text-[0.6rem] tracking-[0.28em] text-cream-dim uppercase mb-6 whitespace-nowrap">
+            Closed · Hand-stitched cowhide
+          </p>
+          <div className="flex flex-col items-center gap-1">
+            <span className="font-sans text-[0.52rem] tracking-[0.3em] text-gold-dim uppercase">Scroll</span>
+            <div className="w-px h-10 bg-gradient-to-b from-gold to-transparent anim-scroll-line" />
           </div>
         </div>
 
@@ -204,6 +174,7 @@ const WalletScrollSection = () => {
   )
 }
 
+/* ── Home page ── */
 const Home = () => {
   const featured = getFeaturedProducts()
 
@@ -212,7 +183,7 @@ const Home = () => {
       (entries) => entries.forEach((e) => {
         if (e.isIntersecting) { e.target.classList.add('revealed'); observer.unobserve(e.target) }
       }),
-      { threshold: 0.1 }
+      { threshold: 0.12 }
     )
     document.querySelectorAll('.reveal').forEach((el) => observer.observe(el))
     return () => observer.disconnect()
@@ -220,320 +191,270 @@ const Home = () => {
 
   return (
     <main>
-      <section style={{
-        minHeight: '100vh',
-        background: 'linear-gradient(160deg, #faf7f2 0%, #f0ebe0 50%, #e8e0d0 100%)',
-        display: 'flex', alignItems: 'center',
-        padding: '8rem 5rem 5rem',
-        position: 'relative', overflow: 'hidden',
-      }}>
-        <div style={{
-          position: 'absolute', inset: 0, opacity: 0.018,
-          backgroundImage: "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")",
-        }}/>
-        <div style={{
-          position: 'absolute', left: '4rem', top: 0, bottom: 0, width: '1px',
-          background: 'linear-gradient(to bottom, transparent, rgba(201,168,76,0.3), transparent)',
-        }}/>
-        <div style={{
-          position: 'absolute', right: '-10rem', top: '-10rem',
-          width: '600px', height: '600px', borderRadius: '50%',
-          border: '1px solid rgba(201,168,76,0.08)',
-          pointerEvents: 'none',
-        }}/>
-        <div style={{
-          position: 'absolute', right: '-6rem', top: '-6rem',
-          width: '400px', height: '400px', borderRadius: '50%',
-          border: '1px solid rgba(201,168,76,0.06)',
-          pointerEvents: 'none',
-        }}/>
-        <div style={{ position: 'relative', zIndex: 2, maxWidth: '700px' }}>
-          <p className="anim-fade-up anim-d1" style={{
-            fontSize: '0.62rem', letterSpacing: '0.45em',
-            color: '#c9a84c', textTransform: 'uppercase', marginBottom: '1.8rem',
-            fontFamily: "'Josefin Sans',sans-serif",
-          }}>Handcrafted in Pakistan · Est. 2024</p>
-          <h1 className="anim-fade-up anim-d2" style={{
-            fontFamily: "'Cormorant Garamond',serif", fontWeight: 300,
-            fontSize: 'clamp(3.8rem, 7vw, 8rem)',
-            lineHeight: '0.92', color: '#1a1510',
-            marginBottom: '1.8rem',
-          }}>
-            The Art of<br />
-            <em style={{ fontStyle: 'italic', color: '#8b4a2a' }}>Fine Leather</em>
-          </h1>
-          <div className="anim-fade-up anim-d3" style={{
-            width: '60px', height: '1px', background: '#c9a84c', marginBottom: '1.8rem',
-          }}/>
-          <p className="anim-fade-up anim-d3" style={{
-            fontSize: '0.8rem', lineHeight: 2, letterSpacing: '0.06em',
-            color: '#4a3f35', maxWidth: '480px', marginBottom: '2.5rem',
-          }}>
-            Every wallet, belt, and shoe that leaves our workshop carries with it the weight of generations — cut by hand, stitched slowly, finished with care.
+
+      {/* ── Hero ── */}
+      <section
+        className="relative min-h-screen flex items-center overflow-hidden px-10 pt-32 pb-20"
+        style={{ background: 'linear-gradient(145deg,#faf7f2 0%,#f0ebe0 55%,#e8e0d0 100%)' }}
+      >
+        {/* Decorative elements */}
+        <div className="absolute left-0 top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-gold/25 to-transparent" />
+        <div className="absolute -right-48 -top-48 w-[650px] h-[650px] rounded-full border border-gold/[0.07] pointer-events-none" />
+        <div className="absolute -right-28 -top-28 w-[420px] h-[420px] rounded-full border border-gold/[0.05] pointer-events-none" />
+
+        {/* Content */}
+        <div className="relative z-10 max-w-[680px]">
+          <p className="anim-fade-up anim-d1 font-sans text-[0.6rem] tracking-[0.45em] text-gold uppercase mb-8">
+            Handcrafted in Pakistan · Est. 2024
           </p>
-          <div className="anim-fade-up anim-d4" style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-            <Link to="/shop" style={{
-              background: '#1a1510', color: '#f5f0e8',
-              fontFamily: "'Josefin Sans',sans-serif",
-              fontSize: '0.68rem', letterSpacing: '0.22em',
-              textTransform: 'uppercase', padding: '1rem 2.8rem',
-              textDecoration: 'none', transition: 'all 0.3s',
-              display: 'inline-block',
-            }}
-            onMouseEnter={e => { e.currentTarget.style.background = '#c9a84c'; e.currentTarget.style.color = '#080606' }}
-            onMouseLeave={e => { e.currentTarget.style.background = '#1a1510'; e.currentTarget.style.color = '#f5f0e8' }}
-            >Explore Collection</Link>
-            <a href="#craft" style={{
-              background: 'none', color: '#1a1510',
-              border: '1px solid rgba(26,21,16,0.3)',
-              fontFamily: "'Josefin Sans',sans-serif",
-              fontSize: '0.68rem', letterSpacing: '0.22em',
-              textTransform: 'uppercase', padding: '1rem 2.8rem',
-              textDecoration: 'none', transition: 'all 0.3s',
-              display: 'inline-block',
-            }}
-            onMouseEnter={e => { e.currentTarget.style.borderColor = '#c9a84c'; e.currentTarget.style.color = '#c9a84c' }}
-            onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(26,21,16,0.3)'; e.currentTarget.style.color = '#1a1510' }}
-            >Our Craft</a>
+
+          <h1
+            className="anim-fade-up anim-d2 font-serif font-light text-black leading-[0.9] mb-8"
+            style={{ fontSize: 'clamp(3.5rem,6.5vw,7.5rem)' }}
+          >
+            The Art of<br />
+            <em className="italic text-cognac">Fine Leather</em>
+          </h1>
+
+          <div className="anim-fade-up anim-d3 w-14 h-px bg-gold mb-8" />
+
+          <p className="anim-fade-up anim-d3 font-sans text-[0.8rem] leading-loose tracking-[0.05em] text-[#4a3f35] max-w-[460px] mb-10">
+            Every wallet, belt, and shoe that leaves our workshop carries with it
+            the weight of generations — cut by hand, stitched slowly, finished with care.
+          </p>
+
+          <div className="anim-fade-up anim-d4 flex items-center gap-4 flex-wrap">
+            <Link
+              to="/shop"
+              className="inline-block bg-black text-cream font-sans text-[0.65rem]
+                tracking-[0.22em] uppercase px-10 py-[1.1rem]
+                transition-all duration-300 hover:bg-gold hover:text-black"
+            >
+              Explore Collection
+            </Link>
+            <a
+              href="#craft"
+              className="inline-block border border-black/25 text-black font-sans text-[0.65rem]
+                tracking-[0.22em] uppercase px-10 py-[1.1rem]
+                transition-all duration-300 hover:border-gold hover:text-gold"
+            >
+              Our Craft
+            </a>
           </div>
-          <div className="anim-fade-in" style={{
-            marginTop: '4.5rem', display: 'flex', alignItems: 'center', gap: '1.2rem',
-          }}>
-            <div style={{
-              width: '1px', height: '50px',
-              background: 'linear-gradient(to bottom, #c9a84c, transparent)',
-            }} className="anim-scroll-line"/>
-            <span style={{
-              fontSize: '0.58rem', letterSpacing: '0.3em',
-              color: '#8a6f30', textTransform: 'uppercase',
-            }}>Scroll to see the wallet</span>
+
+          <div className="anim-fade-in flex items-center gap-4 mt-16">
+            <div className="w-px h-12 bg-gradient-to-b from-gold to-transparent anim-scroll-line" />
+            <span className="font-sans text-[0.55rem] tracking-[0.3em] text-gold-dim uppercase">
+              Scroll to see the wallet
+            </span>
           </div>
         </div>
-        <div className="max-md:hidden" style={{
-          position: 'absolute', right: '5rem', bottom: '4rem',
-          textAlign: 'right',
-        }}>
-          <p style={{
-            fontFamily: "'Cormorant Garamond',serif", fontStyle: 'italic',
-            fontSize: '1.1rem', color: 'rgba(139,74,42,0.4)', lineHeight: 1.8,
-          }}>
+
+        {/* Quote */}
+        <div className="absolute right-12 bottom-14 text-right max-lg:hidden">
+          <p className="font-serif italic text-[1rem] leading-[1.9]" style={{ color: 'rgba(139,74,42,0.35)' }}>
             "Leather is not just a material.<br />It is a commitment to quality."
           </p>
         </div>
       </section>
 
-      <div style={{
-        borderTop: '1px solid rgba(201,168,76,0.15)',
-        borderBottom: '1px solid rgba(201,168,76,0.15)',
-        padding: '0.85rem 0', overflow: 'hidden',
-        background: '#1a1510',
-      }}>
-        <div className="anim-marquee" style={{ display: 'flex', gap: '3rem', whiteSpace: 'nowrap' }}>
-          {MARQUEE.map((item, i) => (
-            <span key={i} style={{
-              fontSize: '0.6rem', letterSpacing: '0.32em',
-              color: '#8a6f30', textTransform: 'uppercase',
-              flexShrink: 0, paddingRight: '3rem', position: 'relative',
-            }}>
+      {/* ── Marquee ── */}
+      <div className="overflow-hidden border-y border-gold/15 py-3" style={{ background: '#1a1510' }}>
+        <div className="anim-marquee flex gap-0 whitespace-nowrap">
+          {MARQUEE_ITEMS.map((item, i) => (
+            <span key={i} className="font-sans text-[0.58rem] tracking-[0.3em] text-gold-dim uppercase shrink-0 relative px-10">
               {item}
-              <span style={{ position: 'absolute', right: '0.8rem', color: '#c9a84c', fontSize: '0.45rem' }}>✦</span>
+              <span className="absolute right-[0.5rem] top-1/2 -translate-y-1/2 text-gold text-[0.4rem]">✦</span>
             </span>
           ))}
         </div>
       </div>
 
+      {/* ── Wallet animation section ── */}
       <WalletScrollSection />
 
-      <section id="craft" style={{
-        padding: '9rem 5rem', background: '#faf7f2',
-        position: 'relative', overflow: 'hidden',
-      }}>
-        <div style={{
-          position: 'absolute', right: '-2rem', top: '50%', transform: 'translateY(-50%)',
-          fontFamily: "'Cormorant Garamond',serif", fontSize: '18rem', fontWeight: 300,
-          color: 'rgba(201,168,76,0.04)', pointerEvents: 'none', userSelect: 'none', lineHeight: 1,
-        }}>V</div>
-        <div style={{
-          display: 'grid', gridTemplateColumns: '1fr 1fr',
-          gap: '7rem', alignItems: 'center',
-          maxWidth: '1200px', margin: '0 auto', position: 'relative', zIndex: 1,
-        }} className="max-md:grid-cols-1 max-md:gap-10">
+      {/* ── Our Craft ── */}
+      <section id="craft" className="relative overflow-hidden py-32 px-10 bg-ivory">
+        {/* Decorative V */}
+        <div
+          className="absolute right-0 top-1/2 -translate-y-1/2 font-serif font-light
+            leading-none select-none pointer-events-none"
+          style={{ fontSize: '18rem', color: 'rgba(201,168,76,0.04)' }}
+        >V</div>
+
+        <div className="relative z-10 max-w-[1200px] mx-auto grid grid-cols-2 gap-24 items-center max-md:grid-cols-1 max-md:gap-12">
+
           <div className="reveal">
-            <span style={{ fontSize: '0.6rem', letterSpacing: '0.35em', color: '#c9a84c', textTransform: 'uppercase', display: 'block', marginBottom: '1rem' }}>
+            <span className="font-sans text-[0.58rem] tracking-[0.35em] text-gold uppercase block mb-5">
               Our Philosophy
             </span>
-            <h2 style={{
-              fontFamily: "'Cormorant Garamond',serif", fontWeight: 300,
-              fontSize: 'clamp(2.5rem,4vw,4.5rem)', color: '#1a1510',
-              lineHeight: 1.1, marginBottom: '1.5rem',
-            }}>
-              Every Stitch<br />Tells a <em style={{ fontStyle: 'italic', color: '#8b4a2a' }}>Story</em>
+            <h2
+              className="font-serif font-light text-black leading-[1.1] mb-7"
+              style={{ fontSize: 'clamp(2.4rem,3.8vw,4rem)' }}
+            >
+              Every Stitch<br />Tells a <em className="italic text-cognac">Story</em>
             </h2>
-            <p style={{ fontSize: '0.8rem', lineHeight: 2.1, color: '#4a3f35', marginBottom: '1.2rem', letterSpacing: '0.04em' }}>
-              We believe that leather goods should outlive trends. Each piece is a meditation on patience — cut from hides selected for character, stitched by hand with waxed thread, finished with attention that mass production can never replicate.
+            <p className="font-sans text-[0.78rem] leading-[2.1] text-[#4a3f35] mb-5 tracking-[0.03em]">
+              We believe that leather goods should outlive trends. Each piece is a meditation on
+              patience — cut from hides selected for character, stitched by hand with waxed thread,
+              finished with attention that mass production can never replicate.
             </p>
-            <p style={{ fontSize: '0.8rem', lineHeight: 2.1, color: '#4a3f35', letterSpacing: '0.04em' }}>
-              From Lahore to the world stage, VELLUM carries forward a heritage of Pakistani leather craftsmanship into a new era of luxury.
+            <p className="font-sans text-[0.78rem] leading-[2.1] text-[#4a3f35] tracking-[0.03em]">
+              From Lahore to the world stage, VELLUM carries forward a heritage of Pakistani
+              leather craftsmanship into a new era of luxury.
             </p>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginTop: '2.5rem' }}>
-              {STATS.map((s, i) => (
-                <div key={i} style={{ borderTop: '1px solid rgba(201,168,76,0.25)', paddingTop: '1rem' }}>
-                  <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: '2.5rem', color: '#c9a84c', fontWeight: 300, lineHeight: 1 }}>{s.num}</div>
-                  <div style={{ fontSize: '0.6rem', letterSpacing: '0.2em', color: '#8a6f30', textTransform: 'uppercase', marginTop: '0.4rem' }}>{s.label}</div>
+
+            {/* Stats */}
+            <div className="grid grid-cols-2 gap-6 mt-12">
+              {STATS.map((s) => (
+                <div key={s.label} className="border-t border-gold/25 pt-5">
+                  <div className="font-serif text-[2.4rem] text-gold font-light leading-none">{s.num}</div>
+                  <div className="font-sans text-[0.58rem] tracking-[0.2em] text-gold-dim uppercase mt-1">{s.label}</div>
                 </div>
               ))}
             </div>
           </div>
-          <div className="reveal" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <div style={{
-              width: '100%', maxWidth: '440px', aspectRatio: '1',
-              background: 'linear-gradient(145deg, #e8e0d0 0%, #d4c8b8 100%)',
-              borderRadius: '2px', display: 'flex', alignItems: 'center', justifyContent: 'center',
-              border: '1px solid rgba(201,168,76,0.15)',
-              position: 'relative', overflow: 'hidden',
-            }}>
+
+          <div className="reveal flex items-center justify-center">
+            <div
+              className="w-full max-w-[420px] aspect-square rounded-sm flex items-center justify-center
+                border border-gold/15 overflow-hidden"
+              style={{ background: 'linear-gradient(135deg,#e8e0d0,#d4c8b8)' }}
+            >
               <img
-                src="/images/wallet-08-opened-180deg.png"
+                src="/images/wallet-open.png"
                 alt="Open leather wallet"
-                style={{ width: '85%', objectFit: 'contain', filter: 'drop-shadow(0 20px 40px rgba(0,0,0,0.25))' }}
+                className="w-4/5 object-contain drop-shadow-[0_20px_40px_rgba(0,0,0,0.25)]"
               />
             </div>
           </div>
+
         </div>
       </section>
 
-      <section style={{ padding: '8rem 0', background: '#0e0d0a' }}>
-        <div style={{ maxWidth: '1300px', margin: '0 auto', padding: '0 3.5rem' }}>
-          <div className="reveal" style={{ textAlign: 'center', marginBottom: '4.5rem' }}>
-            <span style={{ fontSize: '0.6rem', letterSpacing: '0.38em', color: '#c9a84c', textTransform: 'uppercase', display: 'block', marginBottom: '0.8rem' }}>
+      {/* ── Featured products ── */}
+      <section className="py-28 px-10 bg-deep">
+        <div className="max-w-[1300px] mx-auto">
+          <div className="reveal text-center mb-16">
+            <span className="font-sans text-[0.58rem] tracking-[0.38em] text-gold uppercase block mb-3">
               The Collection
             </span>
-            <h2 style={{
-              fontFamily: "'Cormorant Garamond',serif", fontWeight: 300,
-              fontSize: 'clamp(2rem,4vw,3.5rem)', color: '#f5f0e8',
-            }}>Crafted for the Discerning</h2>
+            <h2 className="font-serif font-light text-cream" style={{ fontSize: 'clamp(2rem,3.5vw,3.2rem)' }}>
+              Crafted for the Discerning
+            </h2>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '1.5rem' }}
-            className="max-lg:grid-cols-2 max-md:grid-cols-1">
+
+          <div className="grid grid-cols-3 gap-6 max-lg:grid-cols-2 max-md:grid-cols-1">
             {featured.map((product, i) => (
               <ProductCard key={product.id} product={product} index={i} />
             ))}
           </div>
-          <div style={{ textAlign: 'center', marginTop: '4rem' }}>
-            <Link to="/shop" className="reveal" style={{
-              display: 'inline-block',
-              border: '1px solid rgba(201,168,76,0.25)', color: '#f5f0e8',
-              fontFamily: "'Josefin Sans',sans-serif",
-              fontSize: '0.68rem', letterSpacing: '0.22em',
-              textTransform: 'uppercase', padding: '0.95rem 3rem',
-              textDecoration: 'none', transition: 'all 0.3s',
-            }}
-            onMouseEnter={e => { e.currentTarget.style.borderColor = '#c9a84c'; e.currentTarget.style.color = '#c9a84c' }}
-            onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(201,168,76,0.25)'; e.currentTarget.style.color = '#f5f0e8' }}
-            >View Full Collection</Link>
+
+          <div className="text-center mt-14">
+            <Link
+              to="/shop"
+              className="reveal inline-block border border-gold/30 text-cream font-sans
+                text-[0.65rem] tracking-[0.22em] uppercase px-12 py-4
+                transition-all duration-300 hover:border-gold hover:text-gold"
+            >
+              View Full Collection
+            </Link>
           </div>
         </div>
       </section>
 
-      <section style={{
-        padding: '10rem 4rem', textAlign: 'center',
-        background: '#080806', position: 'relative', overflow: 'hidden',
-      }}>
-        <div style={{
-          position: 'absolute', inset: 0,
-          background: 'radial-gradient(ellipse 70% 50% at 50% 50%, rgba(139,74,42,0.1) 0%, transparent 70%)',
-        }}/>
-        <div style={{ position: 'relative', zIndex: 1 }}>
-          <div className="reveal" style={{ width: '55px', height: '1px', background: '#c9a84c', margin: '0 auto 2.5rem' }}/>
-          <h2 className="reveal" style={{
-            fontFamily: "'Cormorant Garamond',serif", fontWeight: 300,
-            fontSize: 'clamp(3rem,7vw,7rem)', color: '#f5f0e8',
-            lineHeight: 1, marginBottom: '1.5rem',
-          }}>
-            Make It <em style={{ fontStyle: 'italic', color: '#d4a97e' }}>Yours</em>
+      {/* ── Bespoke CTA ── */}
+      <section className="relative overflow-hidden py-36 px-10 text-center bg-black">
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{ background: 'radial-gradient(ellipse 70% 50% at 50% 50%, rgba(139,74,42,0.1) 0%, transparent 70%)' }}
+        />
+        <div className="relative z-10">
+          <div className="reveal w-14 h-px bg-gold mx-auto mb-10" />
+          <h2
+            className="reveal font-serif font-light text-cream leading-none mb-7"
+            style={{ fontSize: 'clamp(2.8rem,6vw,6.5rem)' }}
+          >
+            Make It <em className="italic text-tan-light">Yours</em>
           </h2>
-          <p className="reveal" style={{
-            fontSize: '0.8rem', lineHeight: 2.2, color: '#b8b0a0',
-            maxWidth: '580px', margin: '0 auto 3rem', letterSpacing: '0.05em',
-          }}>
-            Every piece can be customised. Choose your leather, colour, stitching, and monogram. We'll craft it to order within 10–14 days.
+          <p className="reveal font-sans text-[0.78rem] leading-[2.2] text-cream-dim max-w-[520px] mx-auto mb-12 tracking-[0.04em]">
+            Every piece can be customised. Choose your leather, colour, stitching, and monogram.
+            We'll craft it to order within 10–14 days.
           </p>
-          <Link to="/shop" className="reveal" style={{
-            display: 'inline-block', background: '#c9a84c', color: '#080606',
-            fontFamily: "'Josefin Sans',sans-serif",
-            fontSize: '0.68rem', letterSpacing: '0.22em',
-            textTransform: 'uppercase', padding: '1rem 3rem',
-            textDecoration: 'none', transition: 'all 0.3s',
-          }}
-          onMouseEnter={e => e.currentTarget.style.background = '#e8cc85'}
-          onMouseLeave={e => e.currentTarget.style.background = '#c9a84c'}
-          >Start Bespoke Order</Link>
+          <Link
+            to="/shop"
+            className="reveal inline-block bg-gold text-black font-sans text-[0.65rem]
+              tracking-[0.22em] uppercase px-12 py-4
+              transition-all duration-300 hover:bg-gold-light"
+          >
+            Start Bespoke Order
+          </Link>
         </div>
       </section>
 
-      <section style={{ padding: '8rem 0', background: '#faf7f2' }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 3.5rem' }}>
-          <div className="reveal" style={{ textAlign: 'center', marginBottom: '4rem' }}>
-            <span style={{ fontSize: '0.6rem', letterSpacing: '0.38em', color: '#c9a84c', textTransform: 'uppercase', display: 'block', marginBottom: '0.8rem' }}>
+      {/* ── Testimonials ── */}
+      <section className="py-28 px-10 bg-ivory">
+        <div className="max-w-[1180px] mx-auto">
+          <div className="reveal text-center mb-16">
+            <span className="font-sans text-[0.58rem] tracking-[0.38em] text-gold uppercase block mb-3">
               Client Words
             </span>
-            <h2 style={{ fontFamily: "'Cormorant Garamond',serif", fontWeight: 300, fontSize: '2.8rem', color: '#1a1510' }}>
-              What They Say
-            </h2>
+            <h2 className="font-serif font-light text-[2.6rem] text-black">What They Say</h2>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '3rem' }}
-            className="max-md:grid-cols-1">
+
+          <div className="grid grid-cols-3 gap-12 max-md:grid-cols-1 max-md:gap-10">
             {TESTIMONIALS.map((t, i) => (
-              <div key={i} className="reveal" style={{ position: 'relative', paddingTop: '2rem' }}>
-                <span style={{
-                  position: 'absolute', top: '-1.5rem', left: '-0.5rem',
-                  fontFamily: "'Cormorant Garamond',serif", fontSize: '6rem',
-                  color: '#c9a84c', opacity: 0.15, lineHeight: 1,
-                }}>"</span>
-                <p style={{
-                  fontFamily: "'Cormorant Garamond',serif", fontStyle: 'italic',
-                  fontSize: '1.05rem', lineHeight: 1.9, color: '#4a3f35', marginBottom: '1.5rem',
-                }}>{t.text}</p>
-                <p style={{ fontSize: '0.6rem', letterSpacing: '0.2em', color: '#c9a84c', textTransform: 'uppercase' }}>{t.author}</p>
-                <p style={{ fontSize: '0.6rem', color: '#8a6f30', marginTop: '0.3rem' }}>{t.location}</p>
+              <div key={i} className="reveal relative pt-8">
+                <span
+                  className="absolute -top-4 -left-1 font-serif leading-none select-none"
+                  style={{ fontSize: '5.5rem', color: 'rgba(201,168,76,0.13)' }}
+                >"</span>
+                <p className="font-serif italic text-[1.02rem] leading-[1.9] text-[#4a3f35] mb-6">
+                  {t.text}
+                </p>
+                <p className="font-sans text-[0.58rem] tracking-[0.2em] text-gold uppercase">{t.author}</p>
+                <p className="font-sans text-[0.58rem] text-gold-dim mt-1">{t.location}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      <section style={{ padding: '8rem 2rem', textAlign: 'center', background: '#0e0d0a' }}>
-        <div className="reveal">
-          <span style={{ fontSize: '0.6rem', letterSpacing: '0.38em', color: '#c9a84c', textTransform: 'uppercase', display: 'block', marginBottom: '1rem' }}>
+      {/* ── Newsletter ── */}
+      <section className="py-28 px-10 text-center bg-deep">
+        <div className="reveal max-w-[500px] mx-auto">
+          <span className="font-sans text-[0.58rem] tracking-[0.38em] text-gold uppercase block mb-4">
             Stay in the Loop
           </span>
-          <h2 style={{ fontFamily: "'Cormorant Garamond',serif", fontWeight: 300, fontSize: 'clamp(2rem,3.5vw,3.5rem)', color: '#f5f0e8', marginBottom: '1rem' }}>
+          <h2
+            className="font-serif font-light text-cream mb-4"
+            style={{ fontSize: 'clamp(1.8rem,3vw,3rem)' }}
+          >
             Join the Inner Circle
           </h2>
-          <p style={{ fontSize: '0.75rem', color: '#b8b0a0', letterSpacing: '0.1em', marginBottom: '2.5rem' }}>
+          <p className="font-sans text-[0.72rem] text-cream-dim tracking-[0.08em] mb-10">
             New drops, bespoke availability, and the occasional story from the workshop.
           </p>
-          <form style={{ display: 'flex', maxWidth: '460px', margin: '0 auto' }} onSubmit={e => e.preventDefault()}>
-            <input type="email" placeholder="Your email address" style={{
-              flex: 1, background: '#141310',
-              border: '1px solid rgba(201,168,76,0.2)', borderRight: 'none',
-              color: '#f5f0e8', padding: '0.95rem 1.5rem',
-              fontFamily: "'Josefin Sans',sans-serif",
-              fontSize: '0.75rem', letterSpacing: '0.08em', outline: 'none',
-            }}/>
-            <button type="submit" style={{
-              background: '#c9a84c', border: '1px solid #c9a84c', color: '#080606',
-              padding: '0.95rem 2rem',
-              fontFamily: "'Josefin Sans',sans-serif",
-              fontSize: '0.65rem', letterSpacing: '0.2em',
-              textTransform: 'uppercase', cursor: 'pointer', transition: 'all 0.3s',
-            }}
-            onMouseEnter={e => e.currentTarget.style.background = '#e8cc85'}
-            onMouseLeave={e => e.currentTarget.style.background = '#c9a84c'}
-            >Subscribe</button>
+          <form className="flex" onSubmit={e => e.preventDefault()}>
+            <input
+              type="email"
+              placeholder="Your email address"
+              className="flex-1 bg-surface border border-gold/20 border-r-0 text-cream
+                px-6 py-[1rem] font-sans text-[0.72rem] tracking-[0.06em]
+                outline-none placeholder:text-cream-dim/50"
+            />
+            <button
+              type="submit"
+              className="bg-gold border border-gold text-black px-8 font-sans
+                text-[0.62rem] tracking-[0.2em] uppercase
+                transition-all duration-300 hover:bg-gold-light"
+            >
+              Subscribe
+            </button>
           </form>
         </div>
       </section>
+
     </main>
   )
 }

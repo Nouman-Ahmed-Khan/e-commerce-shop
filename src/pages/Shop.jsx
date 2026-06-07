@@ -8,95 +8,56 @@ const Shop = () => {
   const [activeCategory, setActiveCategory] = useState(searchParams.get('category') || 'all')
   const [products, setProducts] = useState([])
 
-  useEffect(() => {
-    setProducts(getProductsByCategory(activeCategory))
-  }, [activeCategory])
-
-  useEffect(() => {
-    setSearchParams({ category: activeCategory })
-  }, [activeCategory, setSearchParams])
+  useEffect(() => { setProducts(getProductsByCategory(activeCategory)) }, [activeCategory])
+  useEffect(() => { setSearchParams({ category: activeCategory }) }, [activeCategory, setSearchParams])
 
   return (
-    <main style={{ minHeight: '100vh', background: '#faf7f2' }}>
-      {/* Header */}
-      <section style={{
-        background: 'linear-gradient(160deg, #faf7f2 0%, #f0ebe0 100%)',
-        padding: '8rem 4rem 4rem',
-        borderBottom: '1px solid rgba(201,168,76,0.12)',
-        textAlign: 'center',
-      }}>
-        <h1 style={{
-          fontFamily: "'Cormorant Garamond',serif", fontSize: 'clamp(3rem,6vw,5rem)',
-          fontWeight: 300, color: '#1a1510', marginBottom: '1rem',
-        }}>
+    <main className="min-h-screen bg-ivory">
+
+      {/* Page header */}
+      <section className="bg-gradient-to-br from-ivory to-[#f0ebe0] pt-36 pb-16 px-10 text-center border-b border-gold/[0.12]">
+        <span className="font-sans text-[0.6rem] tracking-[0.38em] text-gold uppercase block mb-3">
+          Vellum
+        </span>
+        <h1 className="font-serif font-light text-black mb-4" style={{ fontSize: 'clamp(2.8rem,5vw,4.5rem)' }}>
           The Collection
         </h1>
-        <p style={{
-          fontSize: '0.75rem', letterSpacing: '0.3em',
-          color: '#8a6f30', textTransform: 'uppercase',
-        }}>
+        <p className="font-sans text-[0.7rem] tracking-[0.28em] text-gold-dim uppercase">
           {products.length} items
         </p>
       </section>
 
-      {/* Filters */}
-      <section style={{
-        padding: '3rem 4rem', background: '#faf7f2',
-        borderBottom: '1px solid rgba(201,168,76,0.12)',
-      }}>
-        <div style={{ maxWidth: '1300px', margin: '0 auto' }}>
-          <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-            {categories.map((cat) => (
-              <button
-                key={cat}
-                onClick={() => setActiveCategory(cat)}
-                style={{
-                  background: activeCategory === cat ? '#1a1510' : 'none',
-                  color: activeCategory === cat ? '#f5f0e8' : '#1a1510',
-                  border: activeCategory === cat ? 'none' : '1px solid rgba(201,168,76,0.25)',
-                  fontFamily: "'Josefin Sans',sans-serif",
-                  fontSize: '0.65rem', letterSpacing: '0.2em',
-                  textTransform: 'uppercase', padding: '0.7rem 1.8rem',
-                  cursor: 'pointer', transition: 'all 0.3s',
-                }}
-                onMouseEnter={e => {
-                  if (activeCategory !== cat) {
-                    e.target.style.borderColor = '#c9a84c'
-                    e.target.style.color = '#c9a84c'
-                  }
-                }}
-                onMouseLeave={e => {
-                  if (activeCategory !== cat) {
-                    e.target.style.borderColor = 'rgba(201,168,76,0.25)'
-                    e.target.style.color = '#1a1510'
-                  }
-                }}
-              >
-                {cat.charAt(0).toUpperCase() + cat.slice(1)}
-              </button>
-            ))}
-          </div>
+      {/* Category filters */}
+      <section className="px-10 py-10 bg-ivory border-b border-gold/[0.12]">
+        <div className="max-w-[1300px] mx-auto flex gap-3 flex-wrap">
+          {categories.map((cat) => (
+            <button
+              key={cat}
+              onClick={() => setActiveCategory(cat)}
+              className={`font-sans text-[0.62rem] tracking-[0.2em] uppercase px-7 py-[0.65rem]
+                transition-all duration-300
+                ${activeCategory === cat
+                  ? 'bg-black text-cream border border-black'
+                  : 'bg-transparent text-black border border-gold/25 hover:border-gold hover:text-gold'}`}
+            >
+              {cat.charAt(0).toUpperCase() + cat.slice(1)}
+            </button>
+          ))}
         </div>
       </section>
 
-      {/* Products Grid */}
-      <section style={{ padding: '4rem 0' }}>
-        <div style={{ maxWidth: '1300px', margin: '0 auto', padding: '0 4rem' }}>
+      {/* Products grid */}
+      <section className="py-16 px-10">
+        <div className="max-w-[1300px] mx-auto">
           {products.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '6rem 2rem' }}>
-              <p style={{
-                fontFamily: "'Cormorant Garamond',serif", fontSize: '1.5rem',
-                color: '#8a6f30', marginBottom: '1rem',
-              }}>No products found</p>
-              <p style={{ fontSize: '0.75rem', color: '#8a6f30', letterSpacing: '0.1em' }}>
+            <div className="text-center py-24">
+              <p className="font-serif text-[1.4rem] text-gold-dim mb-3">No products found</p>
+              <p className="font-sans text-[0.72rem] text-gold-dim tracking-[0.1em]">
                 Try selecting a different category
               </p>
             </div>
           ) : (
-            <div style={{
-              display: 'grid', gridTemplateColumns: 'repeat(3,1fr)',
-              gap: '1.5rem',
-            }} className="max-lg:grid-cols-2 max-md:grid-cols-1">
+            <div className="grid grid-cols-3 gap-7 max-lg:grid-cols-2 max-md:grid-cols-1">
               {products.map((product, i) => (
                 <ProductCard key={product.id} product={product} index={i} />
               ))}
@@ -104,6 +65,7 @@ const Shop = () => {
           )}
         </div>
       </section>
+
     </main>
   )
 }

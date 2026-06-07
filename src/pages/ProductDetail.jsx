@@ -5,158 +5,122 @@ import { getProductBySlug } from '../data/products'
 import { useCart } from '../context/CartContext'
 
 const ProductDetail = () => {
-  const { slug } = useParams()
-  const product = getProductBySlug(slug)
-  const navigate = useNavigate()
+  const { slug }   = useParams()
+  const product    = getProductBySlug(slug)
+  const navigate   = useNavigate()
   const { addItem, openDrawer } = useCart()
+
   const [selectedColor, setSelectedColor] = useState(product?.colors[0]?.name || '')
-  const [quantity, setQuantity] = useState(1)
-  const [added, setAdded] = useState(false)
+  const [quantity,      setQuantity]      = useState(1)
+  const [added,         setAdded]         = useState(false)
 
-  if (!product) {
-    return (
-      <main style={{ minHeight: '100vh', background: '#faf7f2', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <div style={{ textAlign: 'center' }}>
-          <p style={{ fontSize: '1.2rem', color: '#8a6f30', marginBottom: '1rem' }}>Product not found</p>
-          <Link to="/shop" style={{
-            color: '#c9a84c', textDecoration: 'none', fontSize: '0.75rem',
-            letterSpacing: '0.2em', textTransform: 'uppercase',
-          }}>Back to shop</Link>
-        </div>
-      </main>
-    )
-  }
+  if (!product) return (
+    <main className="min-h-screen bg-ivory flex items-center justify-center">
+      <div className="text-center">
+        <p className="font-serif text-[1.2rem] text-gold-dim mb-4">Product not found</p>
+        <Link to="/shop" className="font-sans text-[0.72rem] tracking-[0.2em] uppercase text-gold">
+          Back to shop
+        </Link>
+      </div>
+    </main>
+  )
 
-  const handleAddToCart = () => {
-    for (let i = 0; i < quantity; i++) {
-      addItem(product, selectedColor)
-    }
+  const handleAdd = () => {
+    for (let i = 0; i < quantity; i++) addItem(product, selectedColor)
     openDrawer()
     setAdded(true)
     setTimeout(() => setAdded(false), 2000)
   }
 
+  const selectedHex = product.colors.find(c => c.name === selectedColor)?.hex || '#3a1f0a'
+
   return (
-    <main style={{ minHeight: '100vh', background: '#faf7f2', paddingTop: '5rem' }}>
+    <main className="min-h-screen bg-ivory pt-20">
+
       {/* Breadcrumb */}
-      <div style={{ padding: '2rem 4rem', borderBottom: '1px solid rgba(201,168,76,0.12)' }}>
-        <button onClick={() => navigate(-1)} style={{
-          display: 'flex', alignItems: 'center', gap: '0.6rem',
-          background: 'none', border: 'none', cursor: 'pointer',
-          color: '#8a6f30', fontFamily: "'Josefin Sans',sans-serif",
-          fontSize: '0.65rem', letterSpacing: '0.15em', textTransform: 'uppercase',
-          transition: 'color 0.3s',
-        }}
-        onMouseEnter={e => e.currentTarget.style.color = '#c9a84c'}
-        onMouseLeave={e => e.currentTarget.style.color = '#8a6f30'}
+      <div className="px-10 py-7 border-b border-gold/[0.12]">
+        <button
+          onClick={() => navigate(-1)}
+          className="flex items-center gap-2 font-sans text-[0.62rem] tracking-[0.15em]
+            uppercase text-gold-dim bg-transparent border-none
+            transition-colors duration-300 hover:text-gold"
         >
-          <ArrowLeft size={14} /> Back
+          <ArrowLeft size={13} strokeWidth={1.5} /> Back
         </button>
       </div>
 
-      {/* Content */}
-      <section style={{
-        maxWidth: '1300px', margin: '0 auto', padding: '4rem',
-        display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '4rem',
-      }} className="max-lg:grid-cols-1">
-        {/* Left: Image */}
-        <div style={{
-          position: 'sticky', top: '8rem', height: 'fit-content',
-          background: 'linear-gradient(145deg, #e8e0d0 0%, #d4c8b8 100%)',
-          borderRadius: '2px', padding: '2rem',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          border: '1px solid rgba(201,168,76,0.15)',
-          minHeight: '500px',
-        }}>
-          <div style={{
-            width: '100%', aspectRatio: '1',
-            background: product.colors.find(c => c.name === selectedColor)?.hex || '#3a1f0a',
-            borderRadius: '2px', position: 'relative',
-          }}>
+      {/* Main content */}
+      <section className="max-w-[1280px] mx-auto px-10 py-14
+        grid grid-cols-[1.1fr_1fr] gap-16 max-lg:grid-cols-1">
+
+        {/* Left: product image */}
+        <div className="sticky top-28 h-fit">
+          <div
+            className="aspect-square rounded-sm flex items-center justify-center
+              border border-gold/15 overflow-hidden"
+            style={{ background: `linear-gradient(135deg, ${selectedHex}33, ${selectedHex}88)` }}
+          >
             <img
-              src={product.images[0] || '/images/wallet-closed.png'}
+              src={product.images?.[0] || '/images/wallet-closed.png'}
               alt={product.name}
-              style={{
-                width: '100%', height: '100%', objectFit: 'contain',
-                padding: '1rem',
-                filter: 'drop-shadow(0 20px 40px rgba(0,0,0,0.25))',
-              }}
-              onError={e => {
-                e.target.style.display = 'none'
-              }}
+              className="w-4/5 h-4/5 object-contain drop-shadow-[0_20px_40px_rgba(0,0,0,0.3)]"
+              onError={e => { e.target.style.display = 'none' }}
             />
           </div>
         </div>
 
-        {/* Right: Details */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+        {/* Right: details */}
+        <div className="flex flex-col gap-8">
+
+          {/* Name & subtitle */}
           <div>
-            <span style={{
-              fontSize: '0.6rem', letterSpacing: '0.35em', color: '#c9a84c',
-              textTransform: 'uppercase', display: 'block', marginBottom: '0.8rem',
-            }}>
-              {product.category.toUpperCase()}
+            <span className="font-sans text-[0.58rem] tracking-[0.35em] text-gold uppercase block mb-3">
+              {product.category}
             </span>
-            <h1 style={{
-              fontFamily: "'Cormorant Garamond',serif", fontSize: '3rem',
-              fontWeight: 300, color: '#1a1510', lineHeight: 1, marginBottom: '0.8rem',
-            }}>
+            <h1 className="font-serif font-light text-black leading-none mb-3"
+              style={{ fontSize: 'clamp(2.4rem,4vw,3.2rem)' }}>
               {product.name}
             </h1>
-            <p style={{
-              fontSize: '0.75rem', letterSpacing: '0.2em',
-              color: '#c9a84c', textTransform: 'uppercase', marginBottom: '1.2rem',
-            }}>
+            <p className="font-sans text-[0.68rem] tracking-[0.2em] text-gold uppercase mb-5">
               {product.subtitle}
             </p>
-            <p style={{
-              fontSize: '0.95rem', lineHeight: 2, color: '#4a3f35',
-              letterSpacing: '0.04em',
-            }}>
+            <p className="text-[0.85rem] leading-[1.9] text-[#4a3f35] tracking-[0.03em]">
               {product.description}
             </p>
           </div>
 
           {/* Price */}
-          <div style={{ borderTop: '1px solid rgba(201,168,76,0.15)', paddingTop: '1.5rem' }}>
-            <p style={{
-              fontFamily: "'Cormorant Garamond',serif", fontSize: '2rem',
-              color: '#1a1510', marginBottom: '0.5rem',
-            }}>
+          <div className="pb-8 border-b border-gold/15">
+            <p className="font-serif font-light text-[2rem] text-black mb-1">
               PKR {product.price.toLocaleString()}
             </p>
-            <p style={{ fontSize: '0.65rem', color: '#8a6f30', letterSpacing: '0.1em' }}>
-              {product.inStock ? 'In Stock' : 'Out of Stock'}
+            <p className={`font-sans text-[0.62rem] tracking-[0.12em] ${product.inStock ? 'text-green-600' : 'text-red-500'}`}>
+              {product.inStock ? '● In Stock' : '● Out of Stock'}
             </p>
           </div>
 
-          {/* Color picker */}
+          {/* Colour picker */}
           <div>
-            <label style={{
-              fontSize: '0.7rem', letterSpacing: '0.2em',
-              color: '#1a1510', textTransform: 'uppercase', display: 'block',
-              marginBottom: '1rem',
-            }}>
-              Choose Colour: <span style={{ color: '#c9a84c' }}>{selectedColor}</span>
-            </label>
-            <div style={{ display: 'flex', gap: '0.8rem', flexWrap: 'wrap' }}>
+            <p className="font-sans text-[0.65rem] tracking-[0.2em] uppercase text-black mb-4">
+              Colour: <span className="text-gold">{selectedColor}</span>
+            </p>
+            <div className="flex gap-3 flex-wrap">
               {product.colors.map((color) => (
                 <button
                   key={color.name}
                   onClick={() => setSelectedColor(color.name)}
                   title={color.name}
+                  className="w-12 h-12 rounded-sm transition-all duration-200
+                    flex items-center justify-center hover:scale-105"
                   style={{
-                    width: '50px', height: '50px', borderRadius: '2px',
-                    background: color.hex, border: selectedColor === color.name ? '2px solid #c9a84c' : '2px solid rgba(201,168,76,0.2)',
-                    cursor: 'pointer', transition: 'all 0.3s',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    position: 'relative',
+                    background: color.hex,
+                    border: selectedColor === color.name
+                      ? '2px solid #c9a84c'
+                      : '2px solid rgba(201,168,76,0.2)',
                   }}
-                  onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.08)'}
-                  onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
                 >
                   {selectedColor === color.name && (
-                    <Check size={20} color="#c9a84c" strokeWidth={3} />
+                    <Check size={18} color="#c9a84c" strokeWidth={2.5} />
                   )}
                 </button>
               ))}
@@ -165,94 +129,68 @@ const ProductDetail = () => {
 
           {/* Quantity */}
           <div>
-            <label style={{
-              fontSize: '0.7rem', letterSpacing: '0.2em',
-              color: '#1a1510', textTransform: 'uppercase', display: 'block',
-              marginBottom: '0.8rem',
-            }}>Quantity</label>
-            <div style={{
-              display: 'flex', alignItems: 'center', gap: '1rem',
-              width: 'fit-content', border: '1px solid rgba(201,168,76,0.2)',
-              padding: '0.5rem 1rem',
-            }}>
-              <button onClick={() => setQuantity(Math.max(1, quantity - 1))} style={{
-                background: 'none', border: 'none', color: '#8a6f30',
-                cursor: 'pointer', fontSize: '1rem', padding: '0',
-              }}>−</button>
-              <span style={{
-                fontFamily: "'Cormorant Garamond',serif", fontSize: '1.2rem',
-                color: '#1a1510', minWidth: '30px', textAlign: 'center',
-              }}>{quantity}</span>
-              <button onClick={() => setQuantity(quantity + 1)} style={{
-                background: 'none', border: 'none', color: '#8a6f30',
-                cursor: 'pointer', fontSize: '1rem', padding: '0',
-              }}>+</button>
+            <p className="font-sans text-[0.65rem] tracking-[0.2em] uppercase text-black mb-3">
+              Quantity
+            </p>
+            <div className="flex items-center gap-5 w-fit border border-gold/20 px-5 py-3">
+              <button
+                onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                className="text-gold-dim bg-transparent border-none text-lg leading-none
+                  hover:text-gold transition-colors"
+              >−</button>
+              <span className="font-serif text-[1.15rem] text-black min-w-[28px] text-center">
+                {quantity}
+              </span>
+              <button
+                onClick={() => setQuantity(quantity + 1)}
+                className="text-gold-dim bg-transparent border-none text-lg leading-none
+                  hover:text-gold transition-colors"
+              >+</button>
             </div>
           </div>
 
-          {/* Add to Cart */}
-          <button onClick={handleAddToCart} style={{
-            background: added ? '#4caf50' : '#1a1510',
-            color: added ? '#ffffff' : '#f5f0e8',
-            fontFamily: "'Josefin Sans',sans-serif",
-            fontSize: '0.75rem', letterSpacing: '0.2em',
-            textTransform: 'uppercase', padding: '1.2rem 0',
-            border: 'none', cursor: 'pointer', transition: 'all 0.3s',
-            fontWeight: 500,
-          }}
-          onMouseEnter={e => {
-            if (!added) {
-              e.currentTarget.style.background = '#c9a84c'
-              e.currentTarget.style.color = '#080606'
-            }
-          }}
-          onMouseLeave={e => {
-            if (!added) {
-              e.currentTarget.style.background = '#1a1510'
-              e.currentTarget.style.color = '#f5f0e8'
-            }
-          }}
+          {/* Add to cart */}
+          <button
+            onClick={handleAdd}
+            disabled={!product.inStock}
+            className={`w-full font-sans text-[0.72rem] tracking-[0.2em] uppercase py-5
+              border-none transition-all duration-300
+              ${added
+                ? 'bg-green-600 text-white'
+                : product.inStock
+                  ? 'bg-black text-cream hover:bg-gold hover:text-black'
+                  : 'bg-black/30 text-cream/50 cursor-not-allowed'}`}
           >
-            {added ? '✓ Added to Cart' : 'Add to Cart'}
+            {added ? '✓ Added to Cart' : product.inStock ? 'Add to Cart' : 'Out of Stock'}
           </button>
 
-          {/* Details */}
-          <div style={{
-            borderTop: '1px solid rgba(201,168,76,0.15)',
-            paddingTop: '2rem',
-          }}>
-            <h3 style={{
-              fontFamily: "'Cormorant Garamond',serif", fontSize: '1.3rem',
-              fontWeight: 300, color: '#1a1510', marginBottom: '1rem',
-            }}>Product Details</h3>
-            <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.7rem' }}>
-              {product.details.map((detail, i) => (
-                <li key={i} style={{
-                  fontSize: '0.75rem', lineHeight: 1.8,
-                  color: '#4a3f35', letterSpacing: '0.04em',
-                  paddingLeft: '1.2rem', position: 'relative',
-                }}>
-                  <span style={{ position: 'absolute', left: 0, color: '#c9a84c' }}>•</span>
-                  {detail}
+          {/* Details list */}
+          <div className="border-t border-gold/15 pt-8">
+            <h3 className="font-serif font-light text-[1.25rem] text-black mb-5">
+              Product Details
+            </h3>
+            <ul className="flex flex-col gap-3 list-none p-0">
+              {product.details.map((d, i) => (
+                <li key={i} className="relative pl-5 text-[0.75rem] leading-relaxed
+                  text-[#4a3f35] tracking-[0.04em]">
+                  <span className="absolute left-0 text-gold">•</span>
+                  {d}
                 </li>
               ))}
             </ul>
           </div>
 
-          {/* Shipping */}
-          <div style={{
-            background: '#f0ebe0', border: '1px solid rgba(201,168,76,0.15)',
-            padding: '1.5rem', borderRadius: '2px',
-          }}>
-            <p style={{
-              fontSize: '0.7rem', letterSpacing: '0.2em',
-              color: '#8a6f30', textTransform: 'uppercase', marginBottom: '0.6rem',
-            }}>Shipping & Returns</p>
-            <p style={{
-              fontSize: '0.75rem', lineHeight: 1.8,
-              color: '#4a3f35', letterSpacing: '0.04em',
-            }}>Free shipping on orders over PKR 5,000. Returns accepted within 14 days. All items handcrafted to order.</p>
+          {/* Shipping notice */}
+          <div className="bg-[#f5f0e8] border border-gold/15 p-6 rounded-sm">
+            <p className="font-sans text-[0.62rem] tracking-[0.2em] uppercase text-gold-dim mb-2">
+              Shipping & Returns
+            </p>
+            <p className="text-[0.75rem] leading-[1.8] text-[#4a3f35] tracking-[0.03em]">
+              Free shipping on orders over PKR 5,000. Returns accepted within 14 days.
+              All items handcrafted to order.
+            </p>
           </div>
+
         </div>
       </section>
     </main>

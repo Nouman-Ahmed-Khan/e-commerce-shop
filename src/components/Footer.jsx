@@ -1,90 +1,89 @@
 import { Link } from 'react-router-dom'
 
-const Footer = () => {
-  const cols = [
-    {
-      title: 'Shop',
-      links: [
-        { label: 'Wallets',     to: '/shop?category=wallets' },
-        { label: 'Shoes',       to: '/shop?category=shoes' },
-        { label: 'Accessories', to: '/shop?category=accessories' },
-        { label: 'Bags',        to: '/shop?category=bags' },
-        { label: 'Gift Sets',   to: '/shop' },
-      ],
-    },
-    {
-      title: 'Service',
-      links: [
-        { label: 'Bespoke Orders',  to: '/shop' },
-        { label: 'Monogramming',    to: '/shop' },
-        { label: 'Repairs',         to: '/shop' },
-        { label: 'Size Guide',      to: '/shop' },
-        { label: 'Care Guide',      to: '/shop' },
-      ],
-    },
-    {
-      title: 'Company',
-      links: [
-        { label: 'Our Story',  to: '/' },
-        { label: 'Workshop',   to: '/' },
-        { label: 'Contact',    to: '/' },
-        { label: 'Press',      to: '/' },
-      ],
-    },
-  ]
+const cols = [
+  {
+    title: 'Shop',
+    links: [
+      { label: 'Wallets',     to: '/shop?category=wallets' },
+      { label: 'Shoes',       to: '/shop?category=shoes' },
+      { label: 'Accessories', to: '/shop?category=accessories' },
+      { label: 'Bags',        to: '/shop?category=bags' },
+      { label: 'Gift Sets',   to: '/shop' },
+    ],
+  },
+  {
+    title: 'Service',
+    links: [
+      { label: 'Bespoke Orders', to: '/shop' },
+      { label: 'Monogramming',   to: '/shop' },
+      { label: 'Repairs',        to: '/shop' },
+      { label: 'Size Guide',     to: '/shop' },
+      { label: 'Care Guide',     to: '/shop' },
+    ],
+  },
+  {
+    title: 'Company',
+    links: [
+      { label: 'Our Story', to: '/' },
+      { label: 'Workshop',  to: '/' },
+      { label: 'Contact',   to: '/' },
+      { label: 'Press',     to: '/' },
+    ],
+  },
+]
 
-  return (
-    <footer style={{ background: '#1a1510', borderTop: '1px solid rgba(201,168,76,0.12)', paddingTop: '5rem', paddingBottom: '2rem', paddingLeft: '4rem', paddingRight: '4rem' }}>
-      <div style={{ maxWidth: '1300px', margin: '0 auto' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', gap: '4rem', marginBottom: '4rem' }}>
-          {/* Brand */}
-          <div>
-            <Link to="/" style={{
-              fontFamily: "'Cormorant Garamond', serif",
-              fontSize: '1.6rem', fontWeight: 300, letterSpacing: '0.38em',
-              color: '#f5f0e8', textDecoration: 'none', display: 'block', marginBottom: '1rem',
-            }}>
-              VE<span style={{ color: '#c9a84c' }}>L</span>LUM
-            </Link>
-            <p style={{ fontSize: '0.72rem', lineHeight: 2, color: '#b8b0a0', letterSpacing: '0.05em' }}>
-              Fine leather goods, crafted by hand in Pakistan. Shipped worldwide with care.
-            </p>
+const Footer = () => (
+  <footer className="bg-[#1a1510] border-t border-gold/[0.12] pt-20 pb-10 px-10">
+    <div className="max-w-[1300px] mx-auto">
+
+      {/* 4-column grid */}
+      <div className="grid grid-cols-4 gap-12 mb-16 max-lg:grid-cols-2 max-lg:gap-10 max-md:grid-cols-1">
+
+        {/* Brand */}
+        <div>
+          <Link to="/" className="font-serif font-light text-[1.55rem] tracking-[0.35em] text-cream block mb-5">
+            VE<span className="text-gold">L</span>LUM
+          </Link>
+          <p className="text-[0.72rem] leading-loose text-cream-dim tracking-[0.04em]">
+            Fine leather goods, crafted by hand in Pakistan. Shipped worldwide with care.
+          </p>
+        </div>
+
+        {/* Link columns */}
+        {cols.map((col) => (
+          <div key={col.title}>
+            <h4 className="font-sans text-[0.58rem] tracking-[0.35em] text-gold uppercase mb-6">
+              {col.title}
+            </h4>
+            <ul className="flex flex-col gap-[0.85rem] list-none p-0">
+              {col.links.map((l) => (
+                <li key={l.label}>
+                  <Link
+                    to={l.to}
+                    className="text-[0.72rem] text-cream-dim tracking-[0.04em]
+                      transition-colors duration-300 hover:text-gold"
+                  >
+                    {l.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
           </div>
-
-          {/* Columns */}
-          {cols.map((col) => (
-            <div key={col.title}>
-              <h4 style={{ fontFamily: "'Josefin Sans', sans-serif", fontSize: '0.6rem', letterSpacing: '0.35em', color: '#c9a84c', textTransform: 'uppercase', marginBottom: '1.5rem', fontWeight: 400 }}>
-                {col.title}
-              </h4>
-              <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.7rem' }}>
-                {col.links.map((l) => (
-                  <li key={l.label}>
-                    <Link to={l.to} style={{
-                      fontSize: '0.72rem', color: '#b8b0a0', textDecoration: 'none',
-                      letterSpacing: '0.05em', transition: 'color 0.3s',
-                    }}
-                    onMouseEnter={e => e.target.style.color = '#c9a84c'}
-                    onMouseLeave={e => e.target.style.color = '#b8b0a0'}
-                    >{l.label}</Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
-        </div>
-
-        <div style={{ borderTop: '1px solid rgba(201,168,76,0.12)', paddingTop: '2rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
-          <p style={{ fontSize: '0.62rem', color: '#b8b0a0', letterSpacing: '0.08em' }}>
-            © 2024 <span style={{ color: '#c9a84c' }}>VELLUM</span> — All rights reserved.
-          </p>
-          <p style={{ fontSize: '0.62rem', color: '#b8b0a0', letterSpacing: '0.08em' }}>
-            Crafted with care · <span style={{ color: '#c9a84c' }}>Pakistan</span>
-          </p>
-        </div>
+        ))}
       </div>
-    </footer>
-  )
-}
+
+      {/* Bottom bar */}
+      <div className="border-t border-gold/[0.12] pt-8 flex items-center justify-between flex-wrap gap-4">
+        <p className="text-[0.62rem] text-cream-dim tracking-[0.08em]">
+          © 2024 <span className="text-gold">VELLUM</span> — All rights reserved.
+        </p>
+        <p className="text-[0.62rem] text-cream-dim tracking-[0.08em]">
+          Crafted with care · <span className="text-gold">Pakistan</span>
+        </p>
+      </div>
+
+    </div>
+  </footer>
+)
 
 export default Footer
