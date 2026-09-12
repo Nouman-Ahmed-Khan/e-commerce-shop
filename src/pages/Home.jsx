@@ -32,54 +32,68 @@ const TESTIMONIALS = [
   },
 ]
 
+/* ── 15 wallet frames ── */
+const FRAMES = [
+  { src: '/images/wallet-01-front-closed.png',   label: 'Closed · Hand-stitched cowhide' },
+  { src: '/images/wallet-02-opened-30deg.png',   label: 'Opening · Vegetable tanned leather' },
+  { src: '/images/wallet-03-opened-45deg.png',   label: 'Opening · Vegetable tanned leather' },
+  { src: '/images/wallet-04-opened-60deg.png',   label: 'Opening · Vegetable tanned leather' },
+  { src: '/images/wallet-05-opened-85deg.png',   label: 'Opening · Vegetable tanned leather' },
+  { src: '/images/wallet-06-opened-100deg.png',  label: 'Opening · Vegetable tanned leather' },
+  { src: '/images/wallet-07-opened-130deg.png',  label: 'Opening · Vegetable tanned leather' },
+  { src: '/images/wallet-08-opened-180deg.png',  label: 'Open · 8 card slots inside' },
+  { src: '/images/wallet-09-closing-130deg.png', label: 'Open · 8 card slots inside' },
+  { src: '/images/wallet-10-closing-100deg.png', label: 'Closing · Premium leather' },
+  { src: '/images/wallet-11-closing-85deg.png',  label: 'Closing · Premium leather' },
+  { src: '/images/wallet-12-closing-60deg.png',  label: 'Closing · Premium leather' },
+  { src: '/images/wallet-13-closing-45deg.png',  label: 'Closing · Premium leather' },
+  { src: '/images/wallet-14-closing-30deg.png',  label: 'Closing · Premium leather' },
+  { src: '/images/wallet-15-back-closed.png',    label: 'Closed · Back side' },
+]
+
 /* ── Wallet scroll animation ── */
 const WalletScrollSection = () => {
   const sectionRef = useRef(null)
   const wrapRef    = useRef(null)
+  const imgRef     = useRef(null)
   const labelRef   = useRef(null)
-  const closedRef  = useRef(null)
-  const midRef     = useRef(null)
-  const openRef    = useRef(null)
+
+  // Preload all frames on mount
+  useEffect(() => {
+    FRAMES.forEach(f => { const i = new Image(); i.src = f.src })
+  }, [])
 
   useEffect(() => {
-    const lerp  = (a, b, t) => a + (b - a) * Math.max(0, Math.min(1, t))
-    const inv   = (lo, hi, p) => Math.max(0, Math.min(1, (p - lo) / (hi - lo)))
-
     let raf = null
+
     const onScroll = () => {
       if (raf) return
       raf = requestAnimationFrame(() => {
         raf = null
-        if (!sectionRef.current) return
+        if (!sectionRef.current || !imgRef.current) return
+
         const rect   = sectionRef.current.getBoundingClientRect()
         const totalH = sectionRef.current.offsetHeight - window.innerHeight
         const p      = Math.min(1, Math.max(0, -rect.top / totalH))
 
-        // Opacities
-        const oClosed = p < 0.20 ? 1 : lerp(1, 0, inv(0.20, 0.45, p))
-        const oMid    = lerp(0, 1, inv(0.20, 0.45, p)) * lerp(1, 0, inv(0.45, 0.70, p))
-        const oOpen   = lerp(0, 1, inv(0.45, 0.70, p))
+        // Map progress → frame index
+        const frameIndex = Math.min(FRAMES.length - 1, Math.floor(p * FRAMES.length))
+        const frame = FRAMES[frameIndex]
 
-        if (closedRef.current) closedRef.current.style.opacity = oClosed.toFixed(3)
-        if (midRef.current)    midRef.current.style.opacity    = oMid.toFixed(3)
-        if (openRef.current)   openRef.current.style.opacity   = oOpen.toFixed(3)
-
-        // 3-D tilt during opening
-        const tilt  = Math.sin(Math.max(0, Math.min(1, (p - 0.20) / 0.50)) * Math.PI) * 20
-        const lift  = Math.sin(p * Math.PI) * -20
-        const scale = lerp(0.88, 1.04, inv(0, 0.80, p))
-
-        if (wrapRef.current) {
-          wrapRef.current.style.transform =
-            `translateY(${lift.toFixed(1)}px) scale(${scale.toFixed(3)}) rotateY(${tilt.toFixed(1)}deg)`
+        // Swap src only when frame changes (avoids flicker)
+        const newSrc = new URL(frame.src, window.location.origin).href
+        if (imgRef.current.src !== newSrc) {
+          imgRef.current.src = frame.src
         }
 
         // Label
-        if (labelRef.current) {
-          labelRef.current.textContent =
-            p < 0.30 ? 'Closed · Hand-stitched cowhide' :
-            p < 0.68 ? 'Opening · Vegetable tanned leather' :
-                       'Open · 8 card slots inside'
+        if (labelRef.current) labelRef.current.textContent = frame.label
+
+        // Subtle lift + scale
+        const lift  = Math.sin(p * Math.PI) * -22
+        const scale = 0.9 + p * 0.14
+        if (wrapRef.current) {
+          wrapRef.current.style.transform = `translateY(${lift.toFixed(1)}px) scale(${scale.toFixed(3)})`
         }
       })
     }
@@ -88,12 +102,6 @@ const WalletScrollSection = () => {
     onScroll()
     return () => { window.removeEventListener('scroll', onScroll); if (raf) cancelAnimationFrame(raf) }
   }, [])
-
-  const imgBase = {
-    position: 'absolute', inset: 0, width: '100%', height: '100%',
-    objectFit: 'contain', pointerEvents: 'none', userSelect: 'none',
-    filter: 'drop-shadow(0 28px 56px rgba(0,0,0,0.9))',
-  }
 
   return (
     <section ref={sectionRef} className="h-[300vh] relative">
@@ -124,23 +132,23 @@ const WalletScrollSection = () => {
           ))}
         </div>
 
-        {/* Wallet images */}
+        {/* Wallet — single <img>, src swapped per frame */}
         <div
           ref={wrapRef}
           className="relative z-[3] will-change-transform"
           style={{
             width: 'min(440px, 70vw)',
             height: 'min(440px, 70vw)',
-            perspective: '1000px',
             transition: 'transform 0.05s linear',
           }}
         >
-          <img ref={closedRef} src="/images/wallet-closed.png" alt="Wallet closed"
-            style={{ ...imgBase, opacity: 1 }} />
-          <img ref={midRef}    src="/images/wallet-2.png"      alt="Wallet opening"
-            style={{ ...imgBase, opacity: 0 }} />
-          <img ref={openRef}   src="/images/wallet-open.png"   alt="Wallet open"
-            style={{ ...imgBase, opacity: 0 }} />
+          <img
+            ref={imgRef}
+            src={FRAMES[0].src}
+            alt="Bifold wallet"
+            className="absolute inset-0 w-full h-full object-contain pointer-events-none select-none"
+            style={{ filter: 'drop-shadow(0 28px 56px rgba(0,0,0,0.85))' }}
+          />
         </div>
 
         {/* Right panel */}
@@ -197,12 +205,10 @@ const Home = () => {
         className="relative min-h-screen flex items-center overflow-hidden px-10 pt-32 pb-20"
         style={{ background: 'linear-gradient(145deg,#faf7f2 0%,#f0ebe0 55%,#e8e0d0 100%)' }}
       >
-        {/* Decorative elements */}
         <div className="absolute left-0 top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-gold/25 to-transparent" />
         <div className="absolute -right-48 -top-48 w-[650px] h-[650px] rounded-full border border-gold/[0.07] pointer-events-none" />
         <div className="absolute -right-28 -top-28 w-[420px] h-[420px] rounded-full border border-gold/[0.05] pointer-events-none" />
 
-        {/* Content */}
         <div className="relative z-10 max-w-[680px]">
           <p className="anim-fade-up anim-d1 font-sans text-[0.6rem] tracking-[0.45em] text-gold uppercase mb-8">
             Handcrafted in Pakistan · Est. 2024
@@ -250,7 +256,6 @@ const Home = () => {
           </div>
         </div>
 
-        {/* Quote */}
         <div className="absolute right-12 bottom-14 text-right max-lg:hidden">
           <p className="font-serif italic text-[1rem] leading-[1.9]" style={{ color: 'rgba(139,74,42,0.35)' }}>
             "Leather is not just a material.<br />It is a commitment to quality."
@@ -274,62 +279,80 @@ const Home = () => {
       <WalletScrollSection />
 
       {/* ── Our Craft ── */}
-      <section id="craft" className="relative overflow-hidden py-32 px-10 bg-ivory">
-        {/* Decorative V */}
-        <div
-          className="absolute right-0 top-1/2 -translate-y-1/2 font-serif font-light
-            leading-none select-none pointer-events-none"
-          style={{ fontSize: '18rem', color: 'rgba(201,168,76,0.04)' }}
-        >V</div>
+      <section id="craft" className="relative overflow-hidden bg-ivory">
 
-        <div className="relative z-10 max-w-[1200px] mx-auto grid grid-cols-2 gap-24 items-center max-md:grid-cols-1 max-md:gap-12">
+        {/* TOP HALF — text + stats, full width */}
+        <div className="relative z-10 max-w-[1200px] mx-auto px-10 pt-32 pb-20">
+          {/* Decorative V */}
+          <div
+            className="absolute right-0 top-0 font-serif font-light leading-none select-none pointer-events-none"
+            style={{ fontSize: '20rem', color: 'rgba(201,168,76,0.04)', lineHeight: 1 }}
+          >V</div>
 
-          <div className="reveal">
-            <span className="font-sans text-[0.58rem] tracking-[0.35em] text-gold uppercase block mb-5">
-              Our Philosophy
-            </span>
-            <h2
-              className="font-serif font-light text-black leading-[1.1] mb-7"
-              style={{ fontSize: 'clamp(2.4rem,3.8vw,4rem)' }}
-            >
-              Every Stitch<br />Tells a <em className="italic text-cognac">Story</em>
-            </h2>
-            <p className="font-sans text-[0.78rem] leading-[2.1] text-[#4a3f35] mb-5 tracking-[0.03em]">
-              We believe that leather goods should outlive trends. Each piece is a meditation on
-              patience — cut from hides selected for character, stitched by hand with waxed thread,
-              finished with attention that mass production can never replicate.
-            </p>
-            <p className="font-sans text-[0.78rem] leading-[2.1] text-[#4a3f35] tracking-[0.03em]">
-              From Lahore to the world stage, VELLUM carries forward a heritage of Pakistani
-              leather craftsmanship into a new era of luxury.
-            </p>
+          <div className="grid grid-cols-2 gap-24 items-start max-md:grid-cols-1 max-md:gap-12">
+            <div className="reveal">
+              <span className="font-sans text-[0.58rem] tracking-[0.35em] text-gold uppercase block mb-5">
+                Our Philosophy
+              </span>
+              <h2
+                className="font-serif font-light text-black leading-[1.1] mb-7"
+                style={{ fontSize: 'clamp(2.4rem,3.8vw,4rem)' }}
+              >
+                Every Stitch<br />Tells a <em className="italic text-cognac">Story</em>
+              </h2>
+              <p className="font-sans text-[0.78rem] leading-[2.1] text-[#4a3f35] mb-5 tracking-[0.03em]">
+                We believe that leather goods should outlive trends. Each piece is a meditation on
+                patience — cut from hides selected for character, stitched by hand with waxed thread,
+                finished with attention that mass production can never replicate.
+              </p>
+              <p className="font-sans text-[0.78rem] leading-[2.1] text-[#4a3f35] tracking-[0.03em]">
+                From Lahore to the world stage, VELLUM carries forward a heritage of Pakistani
+                leather craftsmanship into a new era of luxury.
+              </p>
+            </div>
 
-            {/* Stats */}
-            <div className="grid grid-cols-2 gap-6 mt-12">
+            {/* Stats — right column, aligned top */}
+            <div className="reveal grid grid-cols-2 gap-x-10 gap-y-10 pt-4">
               {STATS.map((s) => (
                 <div key={s.label} className="border-t border-gold/25 pt-5">
-                  <div className="font-serif text-[2.4rem] text-gold font-light leading-none">{s.num}</div>
-                  <div className="font-sans text-[0.58rem] tracking-[0.2em] text-gold-dim uppercase mt-1">{s.label}</div>
+                  <div className="font-serif text-[2.8rem] text-gold font-light leading-none">{s.num}</div>
+                  <div className="font-sans text-[0.58rem] tracking-[0.2em] text-gold-dim uppercase mt-2">{s.label}</div>
                 </div>
               ))}
             </div>
           </div>
-
-          <div className="reveal flex items-center justify-center">
-            <div
-              className="w-full max-w-[420px] aspect-square rounded-sm flex items-center justify-center
-                border border-gold/15 overflow-hidden"
-              style={{ background: 'linear-gradient(135deg,#e8e0d0,#d4c8b8)' }}
-            >
-              <img
-                src="/images/wallet-open.png"
-                alt="Open leather wallet"
-                className="w-4/5 object-contain drop-shadow-[0_20px_40px_rgba(0,0,0,0.25)]"
-              />
-            </div>
-          </div>
-
         </div>
+
+        {/* BOTTOM HALF — full-bleed cinematic image */}
+        <div className="reveal relative w-full overflow-hidden" style={{ height: '520px' }}>
+          {/* Image fills full width */}
+          <img
+            src="/images/craftsman.png"
+            alt="Master leather craftsman at work"
+            className="w-full h-full object-cover object-center"
+            style={{ objectPosition: '50% 30%' }}
+          />
+
+          {/* Dark gradient overlay top + bottom for blending */}
+          <div className="absolute inset-0"
+            style={{ background: 'linear-gradient(to bottom, #faf7f2 0%, transparent 18%, transparent 72%, rgba(14,13,10,0.55) 100%)' }}
+          />
+
+          {/* Gold side accent line */}
+          <div className="absolute left-10 top-0 bottom-0 w-px bg-gradient-to-b from-gold/40 via-gold/10 to-transparent" />
+
+          {/* Floating quote over image */}
+          <div className="absolute bottom-10 left-10 right-10 flex items-end justify-between max-md:flex-col max-md:gap-4">
+            <p className="font-serif italic text-cream/90 max-w-[460px]"
+              style={{ fontSize: 'clamp(1rem, 1.5vw, 1.3rem)', lineHeight: 1.8, textShadow: '0 2px 20px rgba(0,0,0,0.5)' }}>
+              "Every tool mark, every stitch — a signature the machine can never forge."
+            </p>
+            <span className="font-sans text-[0.58rem] tracking-[0.3em] text-gold uppercase shrink-0">
+              Est. Lahore, 2012
+            </span>
+          </div>
+        </div>
+
       </section>
 
       {/* ── Featured products ── */}
@@ -343,13 +366,11 @@ const Home = () => {
               Crafted for the Discerning
             </h2>
           </div>
-
           <div className="grid grid-cols-3 gap-6 max-lg:grid-cols-2 max-md:grid-cols-1">
             {featured.map((product, i) => (
               <ProductCard key={product.id} product={product} index={i} />
             ))}
           </div>
-
           <div className="text-center mt-14">
             <Link
               to="/shop"
@@ -401,7 +422,6 @@ const Home = () => {
             </span>
             <h2 className="font-serif font-light text-[2.6rem] text-black">What They Say</h2>
           </div>
-
           <div className="grid grid-cols-3 gap-12 max-md:grid-cols-1 max-md:gap-10">
             {TESTIMONIALS.map((t, i) => (
               <div key={i} className="reveal relative pt-8">
@@ -409,9 +429,7 @@ const Home = () => {
                   className="absolute -top-4 -left-1 font-serif leading-none select-none"
                   style={{ fontSize: '5.5rem', color: 'rgba(201,168,76,0.13)' }}
                 >"</span>
-                <p className="font-serif italic text-[1.02rem] leading-[1.9] text-[#4a3f35] mb-6">
-                  {t.text}
-                </p>
+                <p className="font-serif italic text-[1.02rem] leading-[1.9] text-[#4a3f35] mb-6">{t.text}</p>
                 <p className="font-sans text-[0.58rem] tracking-[0.2em] text-gold uppercase">{t.author}</p>
                 <p className="font-sans text-[0.58rem] text-gold-dim mt-1">{t.location}</p>
               </div>

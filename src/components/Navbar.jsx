@@ -49,7 +49,7 @@ const Navbar = () => {
               <li key={l.label}>
                 <Link
                   to={l.to}
-                  className={`font-sans font-light text-[0.62rem] tracking-[0.22em] uppercase
+                  className={`font-sans font-light text-[0.75rem] tracking-[0.22em] uppercase
                     border-b pb-[2px] transition-colors duration-300
                     ${active
                       ? 'text-gold border-gold'
