@@ -4,7 +4,15 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>e-commerce-shop</title>
+    <title>VELLUM — Fine Leather Goods</title>
+    <!-- Theme init: runs before React to prevent first-paint flash -->
+    <script>
+      try {
+        if (localStorage.getItem('vellum-theme') === 'dark') {
+          document.documentElement.setAttribute('data-theme', 'dark')
+        }
+      } catch (e) {}
+    </script>
   </head>
   <body>
     <div id="root"></div>

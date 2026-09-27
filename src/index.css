@@ -4,6 +4,7 @@
 
 /* ── 2. Theme tokens (Tailwind v4) ── */
 @theme {
+  /* ── Palette — raw values, never change these ── */
   --color-black:       #080806;
   --color-deep:        #0e0d0a;
   --color-surface:     #141310;
@@ -15,9 +16,26 @@
   --color-cream-dim:   #b8b0a0;
   --color-ivory:       #faf7f2;
   --color-ivory-dark:  #ede8df;
+  --color-ivory-mid:   #f0ebe0;   /* hero gradient mid-stop             */
+  --color-ivory-warm:  #e8e0d0;   /* hero gradient warm-stop            */
   --color-cognac:      #8b4a2a;
   --color-tan:         #c4956a;
   --color-tan-light:   #d4a97e;
+
+  /* ── Palette additions — used in codebase, previously untokenised ── */
+  --color-card-dark:   #1a1510;   /* Footer bg, marquee bg              */
+  --color-text-body:   #4a3f35;   /* Body prose on light backgrounds    */
+
+  /* ── Semantic surface tokens (light theme values) ──
+     These are the variables components will reference in Phase 1B+.
+     Dark mode will only swap these, never the raw palette above.     ── */
+  --color-page-bg:            var(--color-ivory);      /* <body> background        */
+  --color-page-text:          var(--color-black);      /* <body> default text      */
+  --color-body-text:          var(--color-text-body);  /* prose paragraphs         */
+  --color-panel-bg:           var(--color-cream);      /* cards, drawers           */
+  --color-panel-dark:         var(--color-card-dark);  /* footer, marquee          */
+  --color-border:             var(--color-gold);       /* default border tint      */
+  --color-page-gradient-end:  var(--color-ivory-mid);  /* page header gradient end */
 
   --font-serif: 'Cormorant Garamond', serif;
   --font-sans:  'Josefin Sans', sans-serif;
@@ -30,12 +48,13 @@
   html { scroll-behavior: smooth; }
 
   body {
-    background-color: var(--color-ivory);
-    color: var(--color-black);
+    background-color: var(--color-page-bg);
+    color: var(--color-page-text);
     font-family: var(--font-sans);
     font-weight: 300;
     overflow-x: hidden;
     -webkit-font-smoothing: antialiased;
+    transition: background-color 0.3s ease, color 0.3s ease;
   }
 
   h1, h2, h3, h4 {
@@ -56,11 +75,30 @@
   }
 
   ::-webkit-scrollbar       { width: 3px; }
-  ::-webkit-scrollbar-track { background: #ede8df; }
-  ::-webkit-scrollbar-thumb { background: #c9a84c; }
+  ::-webkit-scrollbar-track { background: var(--color-ivory-dark); }
+  ::-webkit-scrollbar-thumb { background: var(--color-gold); }
 }
 
-/* ── 4. Component / utility classes ── */
+/* ── 4. Dark mode — semantic token overrides ──
+   Activated by adding data-theme="dark" to <html>.
+   Only semantic tokens change — raw palette stays frozen.
+   Nothing here affects the current light theme.               ── */
+[data-theme="dark"] {
+  --color-page-bg:            var(--color-deep);
+  --color-page-text:          var(--color-cream);
+  --color-body-text:          var(--color-cream-dim);
+  --color-panel-bg:           var(--color-surface);
+  --color-panel-dark:         var(--color-black);
+  --color-border:             var(--color-gold-dim);
+  --color-page-gradient-end:  var(--color-surface);   /* dark: #141310 — warm subtle shift */
+
+  color-scheme: dark;
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-track { background: var(--color-surface); }
+[data-theme="dark"] ::-webkit-scrollbar-thumb { background: var(--color-gold-dim); }
+
+/* ── 5. Component / utility classes ── */
 @layer components {
 
   /* Scroll-reveal */

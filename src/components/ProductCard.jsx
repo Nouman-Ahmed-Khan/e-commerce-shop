@@ -107,7 +107,7 @@ const ProductCard = ({ product, index = 0 }) => {
   return (
     <Link
       to={`/product/${product.slug}`}
-      className="reveal relative block bg-white border border-gold/[0.12] overflow-hidden
+      className="reveal relative block bg-panel-bg border border-gold/[0.12] overflow-hidden
         transition-all duration-400 shadow-[0_2px_20px_rgba(0,0,0,0.05)]
         hover:-translate-y-1.5 hover:shadow-[0_20px_50px_rgba(0,0,0,0.12)]"
       style={{ transitionDelay: `${index * 0.08}s` }}
@@ -147,14 +147,14 @@ const ProductCard = ({ product, index = 0 }) => {
           )}
         </div>
 
-        <p className="font-serif font-light text-[1.25rem] text-black mb-[2px]">{product.name}</p>
+        <p className="font-serif font-light text-[1.25rem] text-page-text mb-[2px]">{product.name}</p>
         <p className="font-sans text-[0.56rem] tracking-[0.2em] text-gold uppercase mb-4">{product.subtitle}</p>
 
         <div className="flex items-center justify-between">
-          <p className="font-serif text-[1.15rem] text-black">PKR {product.price.toLocaleString()}</p>
+          <p className="font-serif text-[1.15rem] text-page-text">PKR {product.price.toLocaleString()}</p>
           <button
             onClick={handleAdd}
-            className="border border-gold/30 text-black font-sans text-[0.56rem]
+            className="border border-gold/30 text-page-text font-sans text-[0.56rem]
               tracking-[0.14em] uppercase px-4 py-2 bg-transparent
               transition-all duration-300 hover:bg-gold hover:border-gold hover:text-black"
           >

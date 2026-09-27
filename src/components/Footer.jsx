@@ -32,14 +32,15 @@ const cols = [
   },
 ]
 
+// Footer is intentionally always dark (panel-dark) — matches brand's dark luxury feel
+// In dark mode panel-dark resolves to black (#080806), in light to card-dark (#1a1510)
 const Footer = () => (
-  <footer className="bg-[#1a1510] border-t border-gold/[0.12] pt-20 pb-10 px-10">
+  <footer className="bg-panel-dark border-t border-gold/[0.12] pt-20 pb-10 px-10
+    transition-colors duration-300">
     <div className="max-w-[1300px] mx-auto">
 
-      {/* 4-column grid */}
       <div className="grid grid-cols-4 gap-12 mb-16 max-lg:grid-cols-2 max-lg:gap-10 max-md:grid-cols-1">
 
-        {/* Brand */}
         <div>
           <Link to="/" className="font-serif font-light text-[1.55rem] tracking-[0.35em] text-cream block mb-5">
             VE<span className="text-gold">L</span>LUM
@@ -49,7 +50,6 @@ const Footer = () => (
           </p>
         </div>
 
-        {/* Link columns */}
         {cols.map((col) => (
           <div key={col.title}>
             <h4 className="font-sans text-[0.58rem] tracking-[0.35em] text-gold uppercase mb-6">
@@ -72,7 +72,6 @@ const Footer = () => (
         ))}
       </div>
 
-      {/* Bottom bar */}
       <div className="border-t border-gold/[0.12] pt-8 flex items-center justify-between flex-wrap gap-4">
         <p className="text-[0.62rem] text-cream-dim tracking-[0.08em]">
           © 2024 <span className="text-gold">VELLUM</span> — All rights reserved.

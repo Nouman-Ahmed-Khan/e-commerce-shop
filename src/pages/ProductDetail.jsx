@@ -15,7 +15,7 @@ const ProductDetail = () => {
   const [added,         setAdded]         = useState(false)
 
   if (!product) return (
-    <main className="min-h-screen bg-ivory flex items-center justify-center">
+    <main className="min-h-screen bg-page-bg flex items-center justify-center">
       <div className="text-center">
         <p className="font-serif text-[1.2rem] text-gold-dim mb-4">Product not found</p>
         <Link to="/shop" className="font-sans text-[0.72rem] tracking-[0.2em] uppercase text-gold">
@@ -35,7 +35,7 @@ const ProductDetail = () => {
   const selectedHex = product.colors.find(c => c.name === selectedColor)?.hex || '#3a1f0a'
 
   return (
-    <main className="min-h-screen bg-ivory pt-20">
+    <main className="min-h-screen bg-page-bg pt-20 transition-colors duration-300">
 
       {/* Breadcrumb */}
       <div className="px-10 py-7 border-b border-gold/[0.12]">
@@ -61,7 +61,7 @@ const ProductDetail = () => {
             style={{ background: `linear-gradient(135deg, ${selectedHex}33, ${selectedHex}88)` }}
           >
             <img
-              src={product.images?.[0] || '/images/wallet-closed.png'}
+              src={product.images?.[0] || '/images/wallet-01-front-closed.png'}
               alt={product.name}
               className="w-4/5 h-4/5 object-contain drop-shadow-[0_20px_40px_rgba(0,0,0,0.3)]"
               onError={e => { e.target.style.display = 'none' }}
@@ -72,36 +72,35 @@ const ProductDetail = () => {
         {/* Right: details */}
         <div className="flex flex-col gap-8">
 
-          {/* Name & subtitle */}
           <div>
             <span className="font-sans text-[0.58rem] tracking-[0.35em] text-gold uppercase block mb-3">
               {product.category}
             </span>
-            <h1 className="font-serif font-light text-black leading-none mb-3"
+            <h1 className="font-serif font-light text-page-text leading-none mb-3"
               style={{ fontSize: 'clamp(2.4rem,4vw,3.2rem)' }}>
               {product.name}
             </h1>
             <p className="font-sans text-[0.68rem] tracking-[0.2em] text-gold uppercase mb-5">
               {product.subtitle}
             </p>
-            <p className="text-[0.85rem] leading-[1.9] text-[#4a3f35] tracking-[0.03em]">
+            <p className="text-[0.85rem] leading-[1.9] text-body-text tracking-[0.03em]">
               {product.description}
             </p>
           </div>
 
           {/* Price */}
           <div className="pb-8 border-b border-gold/15">
-            <p className="font-serif font-light text-[2rem] text-black mb-1">
+            <p className="font-serif font-light text-[2rem] text-page-text mb-1">
               PKR {product.price.toLocaleString()}
             </p>
-            <p className={`font-sans text-[0.62rem] tracking-[0.12em] ${product.inStock ? 'text-green-600' : 'text-red-500'}`}>
+            <p className={`font-sans text-[0.62rem] tracking-[0.12em] ${product.inStock ? 'text-green-500' : 'text-red-400'}`}>
               {product.inStock ? '● In Stock' : '● Out of Stock'}
             </p>
           </div>
 
           {/* Colour picker */}
           <div>
-            <p className="font-sans text-[0.65rem] tracking-[0.2em] uppercase text-black mb-4">
+            <p className="font-sans text-[0.65rem] tracking-[0.2em] uppercase text-page-text mb-4">
               Colour: <span className="text-gold">{selectedColor}</span>
             </p>
             <div className="flex gap-3 flex-wrap">
@@ -129,7 +128,7 @@ const ProductDetail = () => {
 
           {/* Quantity */}
           <div>
-            <p className="font-sans text-[0.65rem] tracking-[0.2em] uppercase text-black mb-3">
+            <p className="font-sans text-[0.65rem] tracking-[0.2em] uppercase text-page-text mb-3">
               Quantity
             </p>
             <div className="flex items-center gap-5 w-fit border border-gold/20 px-5 py-3">
@@ -138,7 +137,7 @@ const ProductDetail = () => {
                 className="text-gold-dim bg-transparent border-none text-lg leading-none
                   hover:text-gold transition-colors"
               >−</button>
-              <span className="font-serif text-[1.15rem] text-black min-w-[28px] text-center">
+              <span className="font-serif text-[1.15rem] text-page-text min-w-[28px] text-center">
                 {quantity}
               </span>
               <button
@@ -166,13 +165,13 @@ const ProductDetail = () => {
 
           {/* Details list */}
           <div className="border-t border-gold/15 pt-8">
-            <h3 className="font-serif font-light text-[1.25rem] text-black mb-5">
+            <h3 className="font-serif font-light text-[1.25rem] text-page-text mb-5">
               Product Details
             </h3>
             <ul className="flex flex-col gap-3 list-none p-0">
               {product.details.map((d, i) => (
                 <li key={i} className="relative pl-5 text-[0.75rem] leading-relaxed
-                  text-[#4a3f35] tracking-[0.04em]">
+                  text-body-text tracking-[0.04em]">
                   <span className="absolute left-0 text-gold">•</span>
                   {d}
                 </li>
@@ -181,11 +180,11 @@ const ProductDetail = () => {
           </div>
 
           {/* Shipping notice */}
-          <div className="bg-[#f5f0e8] border border-gold/15 p-6 rounded-sm">
+          <div className="bg-panel-bg border border-gold/15 p-6 rounded-sm transition-colors duration-300">
             <p className="font-sans text-[0.62rem] tracking-[0.2em] uppercase text-gold-dim mb-2">
               Shipping & Returns
             </p>
-            <p className="text-[0.75rem] leading-[1.8] text-[#4a3f35] tracking-[0.03em]">
+            <p className="text-[0.75rem] leading-[1.8] text-body-text tracking-[0.03em]">
               Free shipping on orders over PKR 5,000. Returns accepted within 14 days.
               All items handcrafted to order.
             </p>

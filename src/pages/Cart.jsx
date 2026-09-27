@@ -10,11 +10,12 @@ const Cart = () => {
   const total    = totalPrice + shipping
 
   return (
-    <main className="min-h-screen bg-ivory pt-20">
+    <main className="min-h-screen bg-page-bg pt-20 transition-colors duration-300">
 
       {/* Header */}
-      <section className="bg-gradient-to-br from-ivory to-[#f0ebe0] px-10 pt-14 pb-12 border-b border-gold/[0.12]">
-        <h1 className="font-serif font-light text-[2.8rem] text-black">Your Cart</h1>
+      <section className="bg-gradient-to-br from-page-bg to-page-gradient-end px-10 pt-14 pb-12
+        border-b border-gold/[0.12]">
+        <h1 className="font-serif font-light text-[2.8rem] text-page-text">Your Cart</h1>
         <p className="font-sans text-[0.68rem] tracking-[0.2em] text-gold-dim uppercase mt-2">
           {items.length} item{items.length !== 1 ? 's' : ''}
         </p>
@@ -41,25 +42,22 @@ const Cart = () => {
               {items.map((item) => (
                 <div
                   key={`${item.id}-${item.color}`}
-                  className="relative grid grid-cols-[90px_1fr] gap-6 bg-white
-                    border border-gold/[0.12] p-6"
+                  className="relative grid grid-cols-[90px_1fr] gap-6
+                    bg-panel-bg border border-gold/[0.12] p-6 transition-colors duration-300"
                 >
-                  {/* Swatch */}
                   <div
                     className="w-[90px] h-[90px] rounded-sm shrink-0"
                     style={{ background: item.colors?.find(c => c.name === item.color)?.hex || '#3a1f0a' }}
                   />
 
-                  {/* Details */}
                   <div className="flex flex-col">
-                    <h3 className="font-serif font-light text-[1.05rem] text-black mb-1">{item.name}</h3>
+                    <h3 className="font-serif font-light text-[1.05rem] text-page-text mb-1">{item.name}</h3>
                     <p className="font-sans text-[0.58rem] tracking-[0.15em] text-gold uppercase mb-1">{item.color}</p>
                     <p className="font-sans text-[0.7rem] text-gold-dim mb-4">
                       PKR {item.price.toLocaleString()} each
                     </p>
 
                     <div className="flex items-center justify-between mt-auto">
-                      {/* Qty control */}
                       <div className="flex items-center gap-3 border border-gold/20 px-3 py-[6px]">
                         <button
                           onClick={() => updateQuantity(item.id, item.color, item.quantity - 1)}
@@ -68,7 +66,7 @@ const Cart = () => {
                         >
                           <Minus size={13} strokeWidth={1.5} />
                         </button>
-                        <span className="font-serif text-[1rem] text-black min-w-[20px] text-center">
+                        <span className="font-serif text-[1rem] text-page-text min-w-[20px] text-center">
                           {item.quantity}
                         </span>
                         <button
@@ -79,30 +77,27 @@ const Cart = () => {
                           <Plus size={13} strokeWidth={1.5} />
                         </button>
                       </div>
-
-                      <p className="font-serif text-[1.2rem] text-black">
+                      <p className="font-serif text-[1.2rem] text-page-text">
                         PKR {(item.price * item.quantity).toLocaleString()}
                       </p>
                     </div>
                   </div>
 
-                  {/* Remove btn */}
                   <button
                     onClick={() => removeItem(item.id, item.color)}
                     className="absolute top-4 right-4 text-gold-dim bg-transparent border-none
-                      flex items-center transition-colors duration-300 hover:text-red-500"
+                      flex items-center transition-colors duration-300 hover:text-red-400"
                   >
                     <Trash2 size={15} strokeWidth={1.5} />
                   </button>
                 </div>
               ))}
 
-              {/* Clear cart */}
               <div className="flex justify-end">
                 <button
                   onClick={clearCart}
                   className="font-sans text-[0.6rem] tracking-[0.15em] uppercase text-gold-dim
-                    bg-transparent border-none transition-colors duration-300 hover:text-red-500"
+                    bg-transparent border-none transition-colors duration-300 hover:text-red-400"
                 >
                   Clear Cart
                 </button>
@@ -110,17 +105,18 @@ const Cart = () => {
             </div>
 
             {/* Order summary */}
-            <div className="sticky top-28 h-fit bg-white border border-gold/15 p-8">
-              <h3 className="font-serif font-light text-[1.4rem] text-black mb-8">Order Summary</h3>
+            <div className="sticky top-28 h-fit bg-panel-bg border border-gold/15 p-8
+              transition-colors duration-300">
+              <h3 className="font-serif font-light text-[1.4rem] text-page-text mb-8">Order Summary</h3>
 
               <div className="flex flex-col gap-4 pb-6 border-b border-gold/15 mb-6">
-                <div className="flex justify-between text-[0.75rem] text-black">
+                <div className="flex justify-between text-[0.75rem] text-page-text">
                   <span>Subtotal</span>
                   <span>PKR {totalPrice.toLocaleString()}</span>
                 </div>
-                <div className="flex justify-between text-[0.75rem] text-black">
+                <div className="flex justify-between text-[0.75rem] text-page-text">
                   <span>Shipping</span>
-                  <span className={shipping === 0 ? 'text-green-600 font-medium' : ''}>
+                  <span className={shipping === 0 ? 'text-green-500 font-medium' : ''}>
                     {shipping === 0 ? 'FREE' : `PKR ${shipping}`}
                   </span>
                 </div>
@@ -132,21 +128,19 @@ const Cart = () => {
               </div>
 
               <div className="flex justify-between items-center mb-8">
-                <span className="font-sans text-[0.68rem] tracking-[0.2em] uppercase text-black">Total</span>
-                <span className="font-serif text-[1.7rem] text-black">PKR {total.toLocaleString()}</span>
+                <span className="font-sans text-[0.68rem] tracking-[0.2em] uppercase text-page-text">Total</span>
+                <span className="font-serif text-[1.7rem] text-page-text">PKR {total.toLocaleString()}</span>
               </div>
 
               <div className="flex flex-col gap-3">
-                <button
-                  className="w-full bg-black text-cream font-sans text-[0.68rem] tracking-[0.2em]
-                    uppercase py-4 border-none transition-all duration-300
-                    hover:bg-gold hover:text-black"
-                >
+                <button className="w-full bg-black text-cream font-sans text-[0.68rem] tracking-[0.2em]
+                  uppercase py-4 border-none transition-all duration-300
+                  hover:bg-gold hover:text-black">
                   Proceed to Checkout
                 </button>
                 <Link
                   to="/shop"
-                  className="block text-center border border-gold/25 text-black font-sans
+                  className="block text-center border border-gold/25 text-page-text font-sans
                     text-[0.68rem] tracking-[0.2em] uppercase py-4 bg-transparent
                     transition-all duration-300 hover:border-gold hover:text-gold"
                 >

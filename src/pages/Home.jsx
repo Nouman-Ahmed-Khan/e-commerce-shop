@@ -279,80 +279,101 @@ const Home = () => {
       <WalletScrollSection />
 
       {/* ── Our Craft ── */}
-      <section id="craft" className="relative overflow-hidden bg-ivory">
+      <section
+        id="craft"
+        className="relative overflow-hidden"
+        style={{ minHeight: '88vh' }}
+      >
+        {/* Background image */}
+        <img
+          src="/images/craftsman.png"
+          alt="Master leather craftsman at work"
+          className="absolute inset-0 w-full h-full object-cover"
+          style={{ objectPosition: '60% 40%' }}
+        />
 
-        {/* TOP HALF — text + stats, full width */}
-        <div className="relative z-10 max-w-[1200px] mx-auto px-10 pt-32 pb-20">
-          {/* Decorative V */}
-          <div
-            className="absolute right-0 top-0 font-serif font-light leading-none select-none pointer-events-none"
-            style={{ fontSize: '20rem', color: 'rgba(201,168,76,0.04)', lineHeight: 1 }}
-          >V</div>
+        {/* Multi-layer overlay for maximum readability + luxury feel */}
+        {/* Layer 1: dark base so text always reads */}
+        <div className="absolute inset-0" style={{ background: 'rgba(8,8,6,0.62)' }} />
+        {/* Layer 2: rich left-side gradient — text lives here */}
+        <div className="absolute inset-0" style={{
+          background: 'linear-gradient(105deg, rgba(8,8,6,0.82) 0%, rgba(8,8,6,0.72) 35%, rgba(8,8,6,0.25) 65%, transparent 100%)'
+        }} />
+        {/* Layer 3: subtle gold warm tint at bottom */}
+        <div className="absolute inset-0" style={{
+          background: 'linear-gradient(to top, rgba(139,74,42,0.28) 0%, transparent 50%)'
+        }} />
 
-          <div className="grid grid-cols-2 gap-24 items-start max-md:grid-cols-1 max-md:gap-12">
-            <div className="reveal">
-              <span className="font-sans text-[0.58rem] tracking-[0.35em] text-gold uppercase block mb-5">
-                Our Philosophy
-              </span>
+        {/* Gold vertical accent line */}
+        <div className="absolute left-0 top-0 bottom-0 w-[3px]"
+          style={{ background: 'linear-gradient(to bottom, transparent, #c9a84c, transparent)' }}
+        />
+
+        {/* Content */}
+        <div className="relative z-10 max-w-[1200px] mx-auto px-10 py-32 flex flex-col justify-between min-h-[88vh]">
+
+          {/* Top: label */}
+          <div className="reveal">
+            <span className="font-sans text-[0.58rem] tracking-[0.42em] text-gold uppercase">
+              Our Philosophy
+            </span>
+          </div>
+
+          {/* Middle: main text block */}
+          <div className="reveal grid grid-cols-2 gap-20 items-end max-md:grid-cols-1 max-md:gap-12">
+            {/* Left: heading + body */}
+            <div>
               <h2
-                className="font-serif font-light text-black leading-[1.1] mb-7"
-                style={{ fontSize: 'clamp(2.4rem,3.8vw,4rem)' }}
+                className="font-serif font-light text-cream leading-[1.08] mb-8"
+                style={{ fontSize: 'clamp(2.8rem,4.5vw,5rem)' }}
               >
-                Every Stitch<br />Tells a <em className="italic text-cognac">Story</em>
+                Every Stitch<br />Tells a{' '}
+                <em className="italic" style={{ color: '#d4a97e' }}>Story</em>
               </h2>
-              <p className="font-sans text-[0.78rem] leading-[2.1] text-[#4a3f35] mb-5 tracking-[0.03em]">
+
+              <div className="w-12 h-px bg-gold mb-8" />
+
+              <p className="font-sans text-[0.8rem] leading-[2.1] mb-5 tracking-[0.03em]"
+                style={{ color: 'rgba(245,240,232,0.82)' }}>
                 We believe that leather goods should outlive trends. Each piece is a meditation on
                 patience — cut from hides selected for character, stitched by hand with waxed thread,
                 finished with attention that mass production can never replicate.
               </p>
-              <p className="font-sans text-[0.78rem] leading-[2.1] text-[#4a3f35] tracking-[0.03em]">
+              <p className="font-sans text-[0.8rem] leading-[2.1] tracking-[0.03em]"
+                style={{ color: 'rgba(245,240,232,0.72)' }}>
                 From Lahore to the world stage, VELLUM carries forward a heritage of Pakistani
                 leather craftsmanship into a new era of luxury.
               </p>
             </div>
 
-            {/* Stats — right column, aligned top */}
-            <div className="reveal grid grid-cols-2 gap-x-10 gap-y-10 pt-4">
+            {/* Right: stats */}
+            <div className="grid grid-cols-2 gap-x-8 gap-y-10">
               {STATS.map((s) => (
-                <div key={s.label} className="border-t border-gold/25 pt-5">
-                  <div className="font-serif text-[2.8rem] text-gold font-light leading-none">{s.num}</div>
-                  <div className="font-sans text-[0.58rem] tracking-[0.2em] text-gold-dim uppercase mt-2">{s.label}</div>
+                <div key={s.label}
+                  className="border-t pt-5"
+                  style={{ borderColor: 'rgba(201,168,76,0.3)' }}
+                >
+                  <div className="font-serif font-light leading-none mb-2"
+                    style={{ fontSize: '2.8rem', color: '#c9a84c' }}>{s.num}</div>
+                  <div className="font-sans text-[0.56rem] tracking-[0.22em] uppercase"
+                    style={{ color: 'rgba(201,168,76,0.7)' }}>{s.label}</div>
                 </div>
               ))}
             </div>
           </div>
-        </div>
 
-        {/* BOTTOM HALF — full-bleed cinematic image */}
-        <div className="reveal relative w-full overflow-hidden" style={{ height: '520px' }}>
-          {/* Image fills full width */}
-          <img
-            src="/images/craftsman.png"
-            alt="Master leather craftsman at work"
-            className="w-full h-full object-cover object-center"
-            style={{ objectPosition: '50% 30%' }}
-          />
-
-          {/* Dark gradient overlay top + bottom for blending */}
-          <div className="absolute inset-0"
-            style={{ background: 'linear-gradient(to bottom, #faf7f2 0%, transparent 18%, transparent 72%, rgba(14,13,10,0.55) 100%)' }}
-          />
-
-          {/* Gold side accent line */}
-          <div className="absolute left-10 top-0 bottom-0 w-px bg-gradient-to-b from-gold/40 via-gold/10 to-transparent" />
-
-          {/* Floating quote over image */}
-          <div className="absolute bottom-10 left-10 right-10 flex items-end justify-between max-md:flex-col max-md:gap-4">
-            <p className="font-serif italic text-cream/90 max-w-[460px]"
-              style={{ fontSize: 'clamp(1rem, 1.5vw, 1.3rem)', lineHeight: 1.8, textShadow: '0 2px 20px rgba(0,0,0,0.5)' }}>
+          {/* Bottom: quote */}
+          <div className="reveal border-l-2 border-gold/40 pl-6 max-w-[500px]">
+            <p className="font-serif italic leading-[1.8]"
+              style={{ fontSize: 'clamp(0.9rem,1.3vw,1.1rem)', color: 'rgba(245,240,232,0.65)' }}>
               "Every tool mark, every stitch — a signature the machine can never forge."
             </p>
-            <span className="font-sans text-[0.58rem] tracking-[0.3em] text-gold uppercase shrink-0">
+            <span className="font-sans text-[0.55rem] tracking-[0.3em] text-gold uppercase mt-3 block">
               Est. Lahore, 2012
             </span>
           </div>
-        </div>
 
+        </div>
       </section>
 
       {/* ── Featured products ── */}
@@ -414,13 +435,13 @@ const Home = () => {
       </section>
 
       {/* ── Testimonials ── */}
-      <section className="py-28 px-10 bg-ivory">
+      <section className="py-28 px-10 bg-page-bg">
         <div className="max-w-[1180px] mx-auto">
           <div className="reveal text-center mb-16">
             <span className="font-sans text-[0.58rem] tracking-[0.38em] text-gold uppercase block mb-3">
               Client Words
             </span>
-            <h2 className="font-serif font-light text-[2.6rem] text-black">What They Say</h2>
+            <h2 className="font-serif font-light text-[2.6rem] text-page-text">What They Say</h2>
           </div>
           <div className="grid grid-cols-3 gap-12 max-md:grid-cols-1 max-md:gap-10">
             {TESTIMONIALS.map((t, i) => (
@@ -429,7 +450,7 @@ const Home = () => {
                   className="absolute -top-4 -left-1 font-serif leading-none select-none"
                   style={{ fontSize: '5.5rem', color: 'rgba(201,168,76,0.13)' }}
                 >"</span>
-                <p className="font-serif italic text-[1.02rem] leading-[1.9] text-[#4a3f35] mb-6">{t.text}</p>
+                <p className="font-serif italic text-[1.02rem] leading-[1.9] text-body-text mb-6">{t.text}</p>
                 <p className="font-sans text-[0.58rem] tracking-[0.2em] text-gold uppercase">{t.author}</p>
                 <p className="font-sans text-[0.58rem] text-gold-dim mt-1">{t.location}</p>
               </div>

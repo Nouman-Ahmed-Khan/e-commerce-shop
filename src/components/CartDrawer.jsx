@@ -16,14 +16,15 @@ const CartDrawer = () => {
 
       {/* Drawer panel */}
       <div
-        className={`fixed top-0 right-0 bottom-0 w-[400px] max-w-[95vw] bg-ivory z-[201]
+        className={`fixed top-0 right-0 bottom-0 w-[400px] max-w-[95vw] z-[201]
           flex flex-col border-l border-gold/15
-          transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]
+          bg-page-bg
+          transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]
           ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}
       >
         {/* Header */}
         <div className="flex items-center justify-between px-7 py-6 border-b border-gold/15 shrink-0">
-          <h3 className="font-serif font-light text-[1.4rem] text-black">
+          <h3 className="font-serif font-light text-[1.4rem] text-page-text">
             Your Cart
             {totalItems > 0 && (
               <span className="text-gold font-sans text-sm ml-2">({totalItems})</span>
@@ -45,7 +46,7 @@ const CartDrawer = () => {
               <p className="text-[0.78rem] text-gold-dim tracking-[0.1em]">Your cart is empty.</p>
               <button
                 onClick={closeDrawer}
-                className="border border-gold/30 text-black font-sans text-[0.62rem] tracking-[0.18em]
+                className="border border-gold/30 text-page-text font-sans text-[0.62rem] tracking-[0.18em]
                   uppercase px-6 py-3 bg-transparent transition-all duration-300
                   hover:bg-gold hover:border-gold hover:text-black"
               >
@@ -56,7 +57,7 @@ const CartDrawer = () => {
             items.map((item) => (
               <div
                 key={`${item.id}-${item.color}`}
-                className="relative flex gap-4 bg-[#f5f0e8] border border-gold/10 p-4"
+                className="relative flex gap-4 bg-panel-bg border border-gold/10 p-4"
               >
                 {/* Colour swatch */}
                 <div
@@ -65,11 +66,10 @@ const CartDrawer = () => {
                 />
 
                 <div className="flex-1 flex flex-col gap-1 min-w-0">
-                  <p className="font-serif text-[1rem] text-black truncate">{item.name}</p>
+                  <p className="font-serif text-[1rem] text-page-text truncate">{item.name}</p>
                   <p className="text-[0.58rem] tracking-[0.15em] text-gold uppercase">{item.color}</p>
 
                   <div className="flex items-center justify-between mt-auto pt-2">
-                    {/* Qty */}
                     <div className="flex items-center gap-2 border border-gold/20 px-2 py-1">
                       <button
                         onClick={() => updateQuantity(item.id, item.color, item.quantity - 1)}
@@ -78,7 +78,7 @@ const CartDrawer = () => {
                       >
                         <Minus size={11} />
                       </button>
-                      <span className="text-[0.72rem] text-black min-w-[16px] text-center">
+                      <span className="text-[0.72rem] text-page-text min-w-[16px] text-center">
                         {item.quantity}
                       </span>
                       <button
@@ -89,17 +89,16 @@ const CartDrawer = () => {
                         <Plus size={11} />
                       </button>
                     </div>
-                    <p className="text-[0.78rem] text-black font-light">
+                    <p className="text-[0.78rem] text-page-text font-light">
                       PKR {(item.price * item.quantity).toLocaleString()}
                     </p>
                   </div>
                 </div>
 
-                {/* Remove */}
                 <button
                   onClick={() => removeItem(item.id, item.color)}
                   className="absolute top-3 right-3 text-gold-dim bg-transparent border-none
-                    flex items-center transition-colors duration-300 hover:text-red-500"
+                    flex items-center transition-colors duration-300 hover:text-red-400"
                 >
                   <Trash2 size={13} strokeWidth={1.5} />
                 </button>
@@ -115,7 +114,7 @@ const CartDrawer = () => {
               <span className="font-sans text-[0.62rem] tracking-[0.2em] uppercase text-gold-dim">
                 Total
               </span>
-              <span className="font-serif text-[1.25rem] text-black">
+              <span className="font-serif text-[1.25rem] text-page-text">
                 PKR {totalPrice.toLocaleString()}
               </span>
             </div>
