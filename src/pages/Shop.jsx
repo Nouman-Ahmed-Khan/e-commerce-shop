@@ -5,11 +5,10 @@ import ProductCard from '../components/ProductCard'
 
 const Shop = () => {
   const [searchParams, setSearchParams] = useSearchParams()
-  const [activeCategory, setActiveCategory] = useState(searchParams.get('category') || 'all')
+  const activeCategory = searchParams.get('category') || 'all'
   const [products, setProducts] = useState([])
 
   useEffect(() => { setProducts(getProductsByCategory(activeCategory)) }, [activeCategory])
-  useEffect(() => { setSearchParams({ category: activeCategory }) }, [activeCategory, setSearchParams])
 
   return (
     <main className="min-h-screen bg-page-bg transition-colors duration-300">
@@ -35,7 +34,7 @@ const Shop = () => {
           {categories.map((cat) => (
             <button
               key={cat}
-              onClick={() => setActiveCategory(cat)}
+              onClick={() => setSearchParams({ category: cat })}
               className={`font-sans text-[0.62rem] tracking-[0.2em] uppercase px-7 py-[0.65rem]
                 transition-all duration-300
                 ${activeCategory === cat
