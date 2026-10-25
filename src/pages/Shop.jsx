@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { getProductsByCategory, categories } from '../data/products'
 import ProductCard from '../components/ProductCard'
@@ -7,8 +7,29 @@ const Shop = () => {
   const [searchParams, setSearchParams] = useSearchParams()
   const activeCategory = searchParams.get('category') || 'all'
   const [products, setProducts] = useState([])
+  const gridRef = useRef(null)
 
   useEffect(() => { setProducts(getProductsByCategory(activeCategory)) }, [activeCategory])
+
+  // Trigger reveal animation for cards after the product list updates
+  useEffect(() => {
+    if (!gridRef.current) return
+    const observer = new IntersectionObserver(
+      (entries) => entries.forEach((e) => {
+        if (e.isIntersecting) {
+          e.target.classList.add('revealed')
+          observer.unobserve(e.target)
+        }
+      }),
+      { threshold: 0.08 }
+    )
+    // Observe all .reveal elements inside the grid
+    gridRef.current.querySelectorAll('.reveal').forEach((el) => {
+      el.classList.remove('revealed') // reset in case of category switch
+      observer.observe(el)
+    })
+    return () => observer.disconnect()
+  }, [products]) // re-run whenever the products list changes
 
   return (
     <main className="min-h-screen bg-page-bg transition-colors duration-300">
@@ -58,7 +79,7 @@ const Shop = () => {
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-3 gap-7 max-lg:grid-cols-2 max-md:grid-cols-1">
+            <div ref={gridRef} className="grid grid-cols-3 gap-7 max-lg:grid-cols-2 max-md:grid-cols-1">
               {products.map((product, i) => (
                 <ProductCard key={product.id} product={product} index={i} />
               ))}

@@ -1,18 +1,121 @@
 import { useState } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Check } from 'lucide-react'
+import { ArrowLeft } from 'lucide-react'
 import { getProductBySlug } from '../data/products'
 import { useCart } from '../context/CartContext'
+import ProductIllustration from '../components/ProductIllustration'
 
+/* ─── Single image with error fallback ───────────────────────────────── */
+const SafeImage = ({ src, alt, name, className }) => {
+  const [failed, setFailed] = useState(false)
+  if (failed) return <ProductIllustration name={name} />
+  return (
+    <img
+      src={src}
+      alt={alt}
+      key={src}
+      className={className}
+      onError={() => setFailed(true)}
+    />
+  )
+}
+
+/* ─── Thumbnail with independent error state ─────────────────────────── */
+const Thumbnail = ({ src, alt, isActive, onClick }) => {
+  const [failed, setFailed] = useState(false)
+  if (failed) return null   // hide broken thumbnails silently
+  return (
+    <button
+      onClick={onClick}
+      aria-label={alt}
+      aria-pressed={isActive}
+      className={`w-16 h-16 shrink-0 rounded-sm overflow-hidden border-2 transition-all duration-200
+        focus:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-1
+        ${isActive
+          ? 'border-gold opacity-100'
+          : 'border-gold/20 opacity-60 hover:opacity-100 hover:border-gold/50'}`}
+    >
+      <img
+        src={src}
+        alt={alt}
+        className="w-full h-full object-contain bg-[#1a1510]"
+        onError={() => setFailed(true)}
+      />
+    </button>
+  )
+}
+
+/* ─── Gallery panel ──────────────────────────────────────────────────── */
+const ProductGallery = ({ product }) => {
+  const images = product.images ?? []
+  // selectedIdx is keyed to slug so it resets on product navigation
+  const [selectedIdx, setSelectedIdx] = useState(0)
+
+  // Clamp in case images array shrinks between renders
+  const idx = Math.min(selectedIdx, Math.max(0, images.length - 1))
+  const src = images[idx]
+
+  return (
+    <div className="flex flex-col gap-4">
+      {/* Main image */}
+      <div
+        className="aspect-square rounded-sm flex items-center justify-center
+          border border-gold/15 overflow-hidden relative"
+        style={{ background: 'linear-gradient(135deg, rgba(139,74,42,0.18), rgba(201,168,76,0.10))' }}
+      >
+        {src ? (
+          <SafeImage
+            key={`${product.slug}-${idx}`}
+            src={src}
+            alt={`${product.name} — image ${idx + 1}`}
+            name={product.name}
+            className="w-full h-full object-contain"
+          />
+        ) : (
+          <ProductIllustration name={product.name} />
+        )}
+
+        {/* VELLUM watermark */}
+        <span
+          className="absolute top-4 right-4 z-[3] font-serif font-light
+            text-[0.6rem] tracking-[0.32em] select-none pointer-events-none"
+          style={{ color: 'rgba(201,168,76,0.5)' }}
+        >
+          VELLUM
+        </span>
+      </div>
+
+      {/* Thumbnails — only when more than one image */}
+      {images.length > 1 && (
+        <div
+          className="flex gap-3 flex-wrap"
+          role="group"
+          aria-label="Product image thumbnails"
+        >
+          {images.map((imgSrc, i) => (
+            <Thumbnail
+              key={imgSrc}
+              src={imgSrc}
+              alt={`${product.name} — view ${i + 1}`}
+              isActive={i === idx}
+              onClick={() => setSelectedIdx(i)}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+/* ─── Page ───────────────────────────────────────────────────────────── */
 const ProductDetail = () => {
-  const { slug }   = useParams()
-  const product    = getProductBySlug(slug)
-  const navigate   = useNavigate()
+  const { slug }  = useParams()
+  const product   = getProductBySlug(slug)
+  const navigate  = useNavigate()
   const { addItem, openDrawer } = useCart()
 
-  const [selectedColor, setSelectedColor] = useState(product?.colors[0]?.name || '')
-  const [quantity,      setQuantity]      = useState(1)
-  const [added,         setAdded]         = useState(false)
+  const [quantity, setQuantity] = useState(1)
+  const [added,    setAdded]    = useState(false)
 
   if (!product) return (
     <main className="min-h-screen bg-page-bg flex items-center justify-center">
@@ -26,13 +129,11 @@ const ProductDetail = () => {
   )
 
   const handleAdd = () => {
-    for (let i = 0; i < quantity; i++) addItem(product, selectedColor)
+    for (let i = 0; i < quantity; i++) addItem(product, '')
     openDrawer()
     setAdded(true)
     setTimeout(() => setAdded(false), 2000)
   }
-
-  const selectedHex = product.colors.find(c => c.name === selectedColor)?.hex || '#3a1f0a'
 
   return (
     <main className="min-h-screen bg-page-bg pt-20 transition-colors duration-300">
@@ -53,20 +154,9 @@ const ProductDetail = () => {
       <section className="max-w-[1280px] mx-auto px-10 py-14
         grid grid-cols-[1.1fr_1fr] gap-16 max-lg:grid-cols-1">
 
-        {/* Left: product image */}
-        <div className="sticky top-28 h-fit">
-          <div
-            className="aspect-square rounded-sm flex items-center justify-center
-              border border-gold/15 overflow-hidden"
-            style={{ background: `linear-gradient(135deg, ${selectedHex}33, ${selectedHex}88)` }}
-          >
-            <img
-              src={product.images?.[0] || '/images/wallet-01-front-closed.png'}
-              alt={product.name}
-              className="w-4/5 h-4/5 object-contain drop-shadow-[0_20px_40px_rgba(0,0,0,0.3)]"
-              onError={e => { e.target.style.display = 'none' }}
-            />
-          </div>
+        {/* Left: gallery — key on slug so selectedIdx resets on product change */}
+        <div className="max-lg:static lg:sticky lg:top-28 lg:h-fit">
+          <ProductGallery key={product.slug} product={product} />
         </div>
 
         {/* Right: details */}
@@ -96,34 +186,6 @@ const ProductDetail = () => {
             <p className={`font-sans text-[0.62rem] tracking-[0.12em] ${product.inStock ? 'text-green-500' : 'text-red-400'}`}>
               {product.inStock ? '● In Stock' : '● Out of Stock'}
             </p>
-          </div>
-
-          {/* Colour picker */}
-          <div>
-            <p className="font-sans text-[0.65rem] tracking-[0.2em] uppercase text-page-text mb-4">
-              Colour: <span className="text-gold">{selectedColor}</span>
-            </p>
-            <div className="flex gap-3 flex-wrap">
-              {product.colors.map((color) => (
-                <button
-                  key={color.name}
-                  onClick={() => setSelectedColor(color.name)}
-                  title={color.name}
-                  className="w-12 h-12 rounded-sm transition-all duration-200
-                    flex items-center justify-center hover:scale-105"
-                  style={{
-                    background: color.hex,
-                    border: selectedColor === color.name
-                      ? '2px solid #c9a84c'
-                      : '2px solid rgba(201,168,76,0.2)',
-                  }}
-                >
-                  {selectedColor === color.name && (
-                    <Check size={18} color="#c9a84c" strokeWidth={2.5} />
-                  )}
-                </button>
-              ))}
-            </div>
           </div>
 
           {/* Quantity */}
