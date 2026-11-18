@@ -4,11 +4,16 @@ import { getFeaturedProducts } from '../data/products'
 import ProductCard from '../components/ProductCard'
 
 /* ── Static data ── */
-const MARQUEE_ITEMS = [
-  'Full Grain Leather','Handstitched','Bespoke Orders','Vegetable Tanned',
-  'Lifetime Warranty','Worldwide Shipping','Full Grain Leather','Handstitched',
-  'Bespoke Orders','Vegetable Tanned','Lifetime Warranty','Worldwide Shipping',
+const MARQUEE_PHRASES = [
+  'Considered Design','Thoughtful Details','Everyday Essentials',
+  'Refined Materials','Personal Expression','Timeless Appeal',
 ]
+/* The track shows one "sequence" twice and animates by -50%, so a sequence must be at least as
+   wide as the widest screen or a blank gap appears on the right. One set of phrases is only
+   ~1,370px wide, so each sequence repeats it 3x (~4,110px, enough up to ~4K). If you change
+   the phrases or repeat count, update the animation duration of .anim-marquee in index.css. */
+const MARQUEE_SEQUENCE = [...MARQUEE_PHRASES, ...MARQUEE_PHRASES, ...MARQUEE_PHRASES]
+const MARQUEE_ITEMS = [...MARQUEE_SEQUENCE, ...MARQUEE_SEQUENCE]
 
 const STATS = [
   { num: '12+',  label: 'Years of craft'    },
@@ -31,6 +36,13 @@ const TESTIMONIALS = [
     author: 'Fatima K.', location: 'Dubai, UAE',
   },
 ]
+
+/* Destination for the "Let's Talk" custom-order button.
+   The project has no contact page, email, phone or social link yet (the footer's "Contact"
+   link just points to "/"), so this is deliberately left unset rather than invented.
+   Set it to a real destination, e.g. '/contact' (once that route exists), 'mailto:…',
+   or a WhatsApp / Instagram link. While null the button renders but does not navigate. */
+const CUSTOM_ORDER_CONTACT = null
 
 /* ── 15 wallet frames ── */
 const FRAMES = [
@@ -202,70 +214,99 @@ const Home = () => {
 
       {/* ── Hero ── */}
       <section
-        className="relative min-h-screen flex items-center overflow-hidden px-10 pt-32 pb-20"
-        style={{ background: 'linear-gradient(145deg,#faf7f2 0%,#f0ebe0 55%,#e8e0d0 100%)' }}
+        className="relative min-h-screen flex items-center overflow-hidden
+          bg-gradient-to-br from-page-bg to-page-gradient-end
+          px-6 pt-28 pb-14 sm:px-10 lg:px-16 lg:pt-32 lg:pb-20"
       >
+        {/* Left hairline accent */}
         <div className="absolute left-0 top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-gold/25 to-transparent" />
-        <div className="absolute -right-48 -top-48 w-[650px] h-[650px] rounded-full border border-gold/[0.07] pointer-events-none" />
-        <div className="absolute -right-28 -top-28 w-[420px] h-[420px] rounded-full border border-gold/[0.05] pointer-events-none" />
 
-        <div className="relative z-10 max-w-[680px]">
-          <p className="anim-fade-up anim-d1 font-sans text-[0.6rem] tracking-[0.45em] text-gold uppercase mb-8">
-            Handcrafted in Pakistan · Est. 2024
-          </p>
+        <div className="relative z-10 mx-auto w-full max-w-[1280px] grid items-center gap-14
+          lg:grid-cols-[1.15fr_0.85fr] lg:gap-16">
 
-          <h1
-            className="anim-fade-up anim-d2 font-serif font-light text-black leading-[0.9] mb-8"
-            style={{ fontSize: 'clamp(3.5rem,6.5vw,7.5rem)' }}
-          >
-            The Art of<br />
-            <em className="italic text-cognac">Fine Leather</em>
-          </h1>
+          {/* ── Copy ── */}
+          <div>
+            <p className="anim-fade-up anim-d1 font-sans text-[0.58rem] sm:text-[0.6rem]
+              tracking-[0.4em] sm:tracking-[0.45em] text-accent-warm uppercase mb-6 sm:mb-8">
+              A Considered Collection
+            </p>
 
-          <div className="anim-fade-up anim-d3 w-14 h-px bg-gold mb-8" />
-
-          <p className="anim-fade-up anim-d3 font-sans text-[0.8rem] leading-loose tracking-[0.05em] text-[#4a3f35] max-w-[460px] mb-10">
-            Every wallet, belt, and shoe that leaves our workshop carries with it
-            the weight of generations — cut by hand, stitched slowly, finished with care.
-          </p>
-
-          <div className="anim-fade-up anim-d4 flex items-center gap-4 flex-wrap">
-            <Link
-              to="/shop"
-              className="inline-block bg-black text-cream font-sans text-[0.65rem]
-                tracking-[0.22em] uppercase px-10 py-[1.1rem]
-                transition-all duration-300 hover:bg-gold hover:text-black"
+            <h1
+              className="anim-fade-up anim-d2 font-serif font-light text-page-text leading-[1.02] mb-7 sm:mb-8
+                text-[1.9rem] min-[390px]:text-[2.15rem] sm:text-[3rem] md:text-[3.5rem] lg:text-[3rem] xl:text-[4rem] 2xl:text-[4.5rem]"
             >
-              Explore Collection
-            </Link>
-            <a
-              href="#craft"
-              className="inline-block border border-black/25 text-black font-sans text-[0.65rem]
-                tracking-[0.22em] uppercase px-10 py-[1.1rem]
-                transition-all duration-300 hover:border-gold hover:text-gold"
-            >
-              Our Craft
-            </a>
+              Timeless Luxury<br />
+              <em className="italic text-accent-warm">Crafted for Everyday.</em>
+            </h1>
+
+            <div className="anim-fade-up anim-d3 w-14 h-px bg-gold mb-7 sm:mb-8" />
+
+            <p className="anim-fade-up anim-d3 font-sans text-[0.875rem] leading-[1.95] tracking-[0.04em]
+              text-body-text max-w-[460px] mb-9 sm:mb-10">
+              A considered collection of thoughtfully chosen pieces, defined by enduring
+              design, refined details, and everyday appeal.
+            </p>
+
+            <div className="anim-fade-up anim-d4 flex flex-col items-stretch gap-3
+              sm:flex-row sm:items-center sm:gap-4">
+              <Link
+                to="/shop"
+                className="inline-block text-center bg-page-text text-page-bg font-sans text-[0.65rem]
+                  tracking-[0.22em] uppercase px-10 py-[1.1rem]
+                  transition-all duration-300 hover:bg-gold hover:text-black"
+              >
+                Explore Collection
+              </Link>
+              <a
+                href="#craft"
+                className="inline-block text-center border border-page-text/25 text-page-text font-sans
+                  text-[0.65rem] tracking-[0.22em] uppercase px-10 py-[1.1rem]
+                  transition-all duration-300 hover:border-gold hover:text-gold"
+              >
+                Our Story
+              </a>
+            </div>
+
+            <div className="anim-fade-in flex items-center gap-4 mt-12 sm:mt-16">
+              <div className="w-px h-12 bg-gradient-to-b from-gold to-transparent anim-scroll-line" />
+              <span className="font-sans text-[0.55rem] tracking-[0.3em] text-accent-warm uppercase">
+                Scroll to Explore
+              </span>
+            </div>
           </div>
 
-          <div className="anim-fade-in flex items-center gap-4 mt-16">
-            <div className="w-px h-12 bg-gradient-to-b from-gold to-transparent anim-scroll-line" />
-            <span className="font-sans text-[0.55rem] tracking-[0.3em] text-gold-dim uppercase">
-              Scroll to see the wallet
-            </span>
-          </div>
-        </div>
+          {/* ── Brand mark composition — desktop only, deliberately category-neutral ── */}
+          <div className="anim-fade-up anim-d3 hidden lg:flex flex-col items-center justify-center gap-10">
+            <div aria-hidden="true" className="relative w-full max-w-[400px] aspect-square">
+              <div className="absolute inset-0 rounded-full border border-gold/25" />
+              <div className="absolute inset-[11%] rounded-full border border-gold/15" />
+              <span
+                className="absolute inset-0 flex items-center justify-center font-serif font-light
+                  leading-none select-none"
+                style={{
+                  fontSize: 'clamp(7rem, 12vw, 10.5rem)',
+                  color: 'transparent',
+                  WebkitTextStroke: '1px rgba(201,168,76,0.55)',
+                }}
+              >
+                V
+              </span>
+            </div>
 
-        <div className="absolute right-12 bottom-14 text-right max-lg:hidden">
-          <p className="font-serif italic text-[1rem] leading-[1.9]" style={{ color: 'rgba(139,74,42,0.35)' }}>
-            "Leather is not just a material.<br />It is a commitment to quality."
-          </p>
+            <div className="text-center">
+              <div className="w-10 h-px bg-gold/60 mx-auto mb-5" />
+              <p className="font-serif italic text-[1.05rem] leading-[1.8] text-body-text">
+                Good design lives in the details.
+              </p>
+            </div>
+          </div>
+
         </div>
       </section>
 
       {/* ── Marquee ── */}
       <div className="overflow-hidden border-y border-gold/15 py-3" style={{ background: '#1a1510' }}>
-        <div className="anim-marquee flex gap-0 whitespace-nowrap">
+        <div className="anim-marquee flex w-max gap-0 whitespace-nowrap">
           {MARQUEE_ITEMS.map((item, i) => (
             <span key={i} className="font-sans text-[0.58rem] tracking-[0.3em] text-gold-dim uppercase shrink-0 relative px-10">
               {item}
@@ -405,7 +446,7 @@ const Home = () => {
         </div>
       </section>
 
-      {/* ── Bespoke CTA ── */}
+      {/* ── Custom order CTA ── */}
       <section className="relative overflow-hidden py-36 px-10 text-center bg-black">
         <div
           className="absolute inset-0 pointer-events-none"
@@ -417,20 +458,21 @@ const Home = () => {
             className="reveal font-serif font-light text-cream leading-none mb-7"
             style={{ fontSize: 'clamp(2.8rem,6vw,6.5rem)' }}
           >
-            Make It <em className="italic text-tan-light">Yours</em>
+            Looking for <em className="italic text-tan-light">Something Custom?</em>
           </h2>
           <p className="reveal font-sans text-[0.78rem] leading-[2.2] text-cream-dim max-w-[520px] mx-auto mb-12 tracking-[0.04em]">
-            Every piece can be customised. Choose your leather, colour, stitching, and monogram.
-            We'll craft it to order within 10–14 days.
+            Have something special in mind? We'd love to hear about it. Get in touch with our team,
+            share your ideas, and let's discuss what elegant experience we can create together.
           </p>
-          <Link
-            to="/shop"
+          <a
+            href={CUSTOM_ORDER_CONTACT ?? undefined}
+            aria-disabled={CUSTOM_ORDER_CONTACT ? undefined : true}
             className="reveal inline-block bg-gold text-black font-sans text-[0.65rem]
               tracking-[0.22em] uppercase px-12 py-4
               transition-all duration-300 hover:bg-gold-light"
           >
-            Start Bespoke Order
-          </Link>
+            Let's Talk
+          </a>
         </div>
       </section>
 
@@ -456,41 +498,6 @@ const Home = () => {
               </div>
             ))}
           </div>
-        </div>
-      </section>
-
-      {/* ── Newsletter ── */}
-      <section className="py-28 px-10 text-center bg-deep">
-        <div className="reveal max-w-[500px] mx-auto">
-          <span className="font-sans text-[0.58rem] tracking-[0.38em] text-gold uppercase block mb-4">
-            Stay in the Loop
-          </span>
-          <h2
-            className="font-serif font-light text-cream mb-4"
-            style={{ fontSize: 'clamp(1.8rem,3vw,3rem)' }}
-          >
-            Join the Inner Circle
-          </h2>
-          <p className="font-sans text-[0.72rem] text-cream-dim tracking-[0.08em] mb-10">
-            New drops, bespoke availability, and the occasional story from the workshop.
-          </p>
-          <form className="flex" onSubmit={e => e.preventDefault()}>
-            <input
-              type="email"
-              placeholder="Your email address"
-              className="flex-1 bg-surface border border-gold/20 border-r-0 text-cream
-                px-6 py-[1rem] font-sans text-[0.72rem] tracking-[0.06em]
-                outline-none placeholder:text-cream-dim/50"
-            />
-            <button
-              type="submit"
-              className="bg-gold border border-gold text-black px-8 font-sans
-                text-[0.62rem] tracking-[0.2em] uppercase
-                transition-all duration-300 hover:bg-gold-light"
-            >
-              Subscribe
-            </button>
-          </form>
         </div>
       </section>
 

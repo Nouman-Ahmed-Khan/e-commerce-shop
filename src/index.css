@@ -1,6 +1,6 @@
-/* ── 1. Tailwind first, then external fonts ── */
+/* ── 1. Tailwind ──
+   Fonts (Cormorant Garamond + Josefin Sans) are loaded via <link> tags in index.html. */
 @import "tailwindcss";
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Josefin+Sans:wght@100;300;400&display=swap');
 
 /* ── 2. Theme tokens (Tailwind v4) ── */
 @theme {
@@ -36,6 +36,7 @@
   --color-panel-dark:         var(--color-card-dark);  /* footer, marquee          */
   --color-border:             var(--color-gold);       /* default border tint      */
   --color-page-gradient-end:  var(--color-ivory-mid);  /* page header gradient end */
+  --color-accent-warm:        var(--color-cognac);     /* italic emphasis in headings */
 
   --font-serif: 'Cormorant Garamond', serif;
   --font-sans:  'Josefin Sans', sans-serif;
@@ -91,6 +92,7 @@
   --color-panel-dark:         var(--color-black);
   --color-border:             var(--color-gold-dim);
   --color-page-gradient-end:  var(--color-surface);   /* dark: #141310 — warm subtle shift */
+  --color-accent-warm:        var(--color-tan-light); /* dark: cognac is too dim on charcoal */
 
   color-scheme: dark;
 }
@@ -149,7 +151,8 @@
   .anim-d5 { animation-delay: 1.10s; }
 
   .anim-fade-in    { opacity: 0; animation: fadeIn 1s 2s forwards; }
-  .anim-marquee    { animation: marquee 26s linear infinite; }
+  /* 148s keeps the original ~28px/s speed: one sequence is ~4,110px (3 phrase sets, see Home.jsx) */
+  .anim-marquee    { animation: marquee 148s linear infinite; }
   .anim-float      { animation: float 5s ease-in-out infinite; }
   .anim-scroll-line { animation: scrollPulse 2s infinite; }
 }
