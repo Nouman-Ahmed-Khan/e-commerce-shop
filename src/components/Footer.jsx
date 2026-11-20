@@ -1,4 +1,6 @@
-import { Link } from 'react-router-dom'
+import { useEffect } from 'react'
+import { Link, useLocation } from 'react-router-dom'
+import { whatsappLink, WHATSAPP_MESSAGES } from '../data/contact'
 
 const cols = [
   {
@@ -8,35 +10,41 @@ const cols = [
       { label: 'Shoes',       to: '/shop?category=shoes' },
       { label: 'Accessories', to: '/shop?category=accessories' },
       { label: 'Bags',        to: '/shop?category=bags' },
-      { label: 'Gift Sets',   to: '/shop' },
     ],
   },
   {
     title: 'Service',
     links: [
-      { label: 'Bespoke Orders', to: '/shop' },
-      { label: 'Monogramming',   to: '/shop' },
-      { label: 'Repairs',        to: '/shop' },
-      { label: 'Size Guide',     to: '/shop' },
-      { label: 'Care Guide',     to: '/shop' },
+      { label: 'Bespoke Orders', href: whatsappLink(WHATSAPP_MESSAGES.bespoke) },
     ],
   },
   {
     title: 'Company',
     links: [
-      { label: 'Our Story', to: '/' },
-      { label: 'Workshop',  to: '/' },
-      { label: 'Contact',   to: '/' },
-      { label: 'Press',     to: '/' },
+      { label: 'Our Story', to: '/#craft' },
+      { label: 'Contact',   to: '/contact' },
     ],
   },
 ]
+
+/* Router links don't scroll to #fragments on their own, so "Our Story" (/#craft) would change the
+   URL but leave the page where it was. After any navigation to a URL with a hash, scroll to it.
+   (The Footer is rendered on every page, so this also covers opening /#craft directly.) */
+const HashScroller = () => {
+  const { pathname, hash } = useLocation()
+  useEffect(() => {
+    if (!hash) return
+    document.getElementById(decodeURIComponent(hash.slice(1)))?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }, [pathname, hash])
+  return null
+}
 
 // Footer is intentionally always dark (panel-dark) — matches brand's dark luxury feel
 // In dark mode panel-dark resolves to black (#080806), in light to card-dark (#1a1510)
 const Footer = () => (
   <footer className="bg-panel-dark border-t border-gold/[0.12] pt-20 pb-10 px-10
     transition-colors duration-300">
+    <HashScroller />
     <div className="max-w-[1300px] mx-auto">
 
       <div className="grid grid-cols-4 gap-12 mb-16 max-lg:grid-cols-2 max-lg:gap-10 max-md:grid-cols-1">
@@ -58,13 +66,26 @@ const Footer = () => (
             <ul className="flex flex-col gap-[0.85rem] list-none p-0">
               {col.links.map((l) => (
                 <li key={l.label}>
-                  <Link
-                    to={l.to}
-                    className="text-[0.72rem] text-cream-dim tracking-[0.04em]
-                      transition-colors duration-300 hover:text-gold"
-                  >
-                    {l.label}
-                  </Link>
+                  {l.href ? (
+                    <a
+                      href={l.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[0.72rem] text-cream-dim tracking-[0.04em]
+                        transition-colors duration-300 hover:text-gold"
+                    >
+                      {l.label}
+                      <span className="sr-only"> (opens WhatsApp in a new tab)</span>
+                    </a>
+                  ) : (
+                    <Link
+                      to={l.to}
+                      className="text-[0.72rem] text-cream-dim tracking-[0.04em]
+                        transition-colors duration-300 hover:text-gold"
+                    >
+                      {l.label}
+                    </Link>
+                  )}
                 </li>
               ))}
             </ul>
@@ -74,7 +95,7 @@ const Footer = () => (
 
       <div className="border-t border-gold/[0.12] pt-8 flex items-center justify-between flex-wrap gap-4">
         <p className="text-[0.62rem] text-cream-dim tracking-[0.08em]">
-          © 2024 <span className="text-gold">VELLUM</span> — All rights reserved.
+          © {new Date().getFullYear()} <span className="text-gold">VELLUM</span> — All rights reserved.
         </p>
         <p className="text-[0.62rem] text-cream-dim tracking-[0.08em]">
           Crafted with care · <span className="text-gold">Pakistan</span>

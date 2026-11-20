@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { getFeaturedProducts } from '../data/products'
 import ProductCard from '../components/ProductCard'
+import { whatsappLink, WHATSAPP_MESSAGES } from '../data/contact'
 
 /* ── Static data ── */
 const MARQUEE_PHRASES = [
@@ -36,13 +37,6 @@ const TESTIMONIALS = [
     author: 'Fatima K.', location: 'Dubai, UAE',
   },
 ]
-
-/* Destination for the "Let's Talk" custom-order button.
-   The project has no contact page, email, phone or social link yet (the footer's "Contact"
-   link just points to "/"), so this is deliberately left unset rather than invented.
-   Set it to a real destination, e.g. '/contact' (once that route exists), 'mailto:…',
-   or a WhatsApp / Instagram link. While null the button renders but does not navigate. */
-const CUSTOM_ORDER_CONTACT = null
 
 /* ── 15 wallet frames ── */
 const FRAMES = [
@@ -465,13 +459,15 @@ const Home = () => {
             share your ideas, and let's discuss what elegant experience we can create together.
           </p>
           <a
-            href={CUSTOM_ORDER_CONTACT ?? undefined}
-            aria-disabled={CUSTOM_ORDER_CONTACT ? undefined : true}
+            href={whatsappLink(WHATSAPP_MESSAGES.custom)}
+            target="_blank"
+            rel="noopener noreferrer"
             className="reveal inline-block bg-gold text-black font-sans text-[0.65rem]
               tracking-[0.22em] uppercase px-12 py-4
               transition-all duration-300 hover:bg-gold-light"
           >
             Let's Talk
+            <span className="sr-only"> (opens WhatsApp in a new tab)</span>
           </a>
         </div>
       </section>
